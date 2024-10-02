@@ -44,17 +44,47 @@ class dataset:
         - Sorts the data by its class/target value. We can assume all labels are the last indice of an example.
         - The prediction_type_flag essentially tells us if the last indice can be converted to a float or not. Regression datasets are sorted by value
         '''
+        if prediction_type_flag == "regression":
+            sorted_data = self.intake_data[self.intake_data[:, -1].astype(float).argsort()]
+        else:
+            sorted_data = self.intake_data[self.intake_data[:, -1].argsort()]
+
+        self.intake_data = sorted_data
         return
     def split(self):
         '''
         Puts the first 10% of the data into its own array (self.tune_set), then the remaining data (self.validate_set) into its own array.
         We should end up with two arrays, both are sorted and stratified. The validation still will need to be separated into partitions.
         '''
+        tune_data = []
+
+        for i in range(self.intake_data.shape[0]):
+            if(i % 10) == 0:
+                tune_data.append(self.intake_data[i])
+            else:
+                self.ninety_data.append(self.intake_data[i])
+
+        self.tune_set = np.array(tune_data)
+        self.ninety_data = np.array(self.ninety_data)
+        
         return
     def fold(self):
         '''
         This method folds self.validate_set into stratified partitions
         '''
+        shape = (10, (len(self.ninety_data) // 10) + 1, len(self.ninety_data[0]))
+        null_string = "null"
+        self.validate_set = np.full(shape, null_string)
+        fold_counts = np.zeros(10)
+
+        for i, example in enumerate(self.ninety_data):
+            fold_index = i % 10
+            
+            example_position = fold_counts[fold_index]  #This finds the next null example
+            self.validate_set[fold_index, example_position] = example
+
+        
+            fold_counts[fold_index] += 1
         return
     
 
