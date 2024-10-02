@@ -1,3 +1,7 @@
+import os
+import numpy as np
+import random
+
 class dataset:
     def __init__(self, data_path: str, processed_flag: str):
         '''
@@ -81,10 +85,10 @@ class dataset:
         - The prediction_type_flag essentially tells us if the last indice can be converted to a float or not. Regression datasets are sorted by value
         '''
         if prediction_type_flag == "regression":
-            print('REGRESSION')
+            #print('REGRESSION')
             sorted_data = self.intake_data[self.intake_data[:, -1].astype(float).argsort()]
         else:
-            print("CLASSIFICATION")
+            #print("CLASSIFICATION")
             sorted_data = self.intake_data[self.intake_data[:, -1].argsort()]
 
         self.intake_data = sorted_data
@@ -133,6 +137,10 @@ class dataset:
             np.random.shuffle(partition)
         return
     
+    def remove_attribute(self, indice=0):
+        # Takes in an attribute indice, and removes that entire indice from the dataset. This can be used to remove ID numbers
+        for example_idx in range(len(self.intake_data)):
+                self.intake_data[example_idx].pop(0)
 
     ## Don't worry about saving for now
     def save_validate_set(self, save_file_name, save_folder):
