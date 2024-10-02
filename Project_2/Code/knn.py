@@ -31,7 +31,8 @@ class knn:
         - the third argument is the point that is being referenced for distances
         - The method returns the class/regression value of the k_n nearest neighbors
         '''
-
+        model.astype(np.float32)
+        test_point.astype(np.float32)
 
         def euclidean_distance(point1: np, point2: np):
             # np.linalg.norm calculates the euclidean distances between two points
@@ -39,20 +40,14 @@ class knn:
                 
         
         distances = np.zeros((model.shape[0]), dtype=float)
-        mapped_distances = {}
         for i, model_point in enumerate(model):
             # calculate euclidean distance
             # COULD ALWAYS SWAP THIS FUNCTION CALL FOR THE ONE LINER
-            distances[i] = euclidean_distance(test_point, model_point)
-
-
-            # CURRENTLY THIS LINE DOES NOT ACCOUNT FOR TWO POINTS HAVING THE SAME DISTANCE, WHERE IF THEY DO THE ORIGINAL INDICE WILL BE OVERWRITTEN. THIS NEEDS TO BE ADJUSTED, CONSIDER MAKING A DISTANCE CORRESPOND TO A LIST OF INDICES (DISTANCE: [i_1,...i_n])
-            mapped_distances[distances[i]] = i
-        
-        
+            distances[i] = euclidean_distance(test_point, model_point[i][:-1])
         # np.partitions moves the K_n smallest values in an np array to the front of the array. We then slice the array to get the k_n smallest values
         smallest_distances = np.partition(distances, k_n)[:k_n]
-        neighbor_indices = [mapped_distances[dist] for dist in smallest_distances]
+        neighbor_indices = np.where((distances == smallest_distances))
+        print(f"Neighbor Indices:\n{neighbor_indices}")
         # MIGHT NEED TO CONVERT NEIGHBOR_INDICES INTO A TUPLE
         nearest_neighbors = model[neighbor_indices][-1]
         # Technically this returns the class/regression value of the k_n nearest neighbors

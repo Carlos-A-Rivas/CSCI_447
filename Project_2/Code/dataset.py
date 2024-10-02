@@ -86,7 +86,7 @@ class dataset:
         '''
         if prediction_type_flag == "regression":
             #print('REGRESSION')
-            sorted_data = self.intake_data[self.intake_data[:, -1].astype(float).argsort()]
+            sorted_data = self.intake_data[self.intake_data[:, -1].astype(np.float32).argsort()]
         else:
             #print("CLASSIFICATION")
             sorted_data = self.intake_data[self.intake_data[:, -1].argsort()]
@@ -139,8 +139,7 @@ class dataset:
     
     def remove_attribute(self, indice=0):
         # Takes in an attribute indice, and removes that entire indice from the dataset. This can be used to remove ID numbers
-        for example_idx in range(len(self.intake_data)):
-                self.intake_data[example_idx].pop(0)
+        self.intake_data = np.delete(self.intake_data, indice, 1)
 
     ## Don't worry about saving for now
     def save_validate_set(self, save_file_name, save_folder):
