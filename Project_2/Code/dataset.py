@@ -13,6 +13,7 @@ class dataset:
         self.intake_data = []
         self.tune_set = []
         self.validate_set = []
+        self.ninety_data = []
         # CARLOS ADDS DOWN HERE
 
         # Data is being read in from original .DATA file
