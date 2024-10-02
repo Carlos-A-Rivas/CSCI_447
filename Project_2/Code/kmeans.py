@@ -7,8 +7,7 @@ class kmeans:
         - instantiate self variables
         '''
         return
-    def tune(self, prediction_type_flag: str, epochs=50 k_n=1, sigma=1):
-
+    def tune(self, prediction_type_flag: str, epochs=50, k_n=1, sigma=1):
         return
     def classify(self):
         return

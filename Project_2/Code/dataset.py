@@ -1,5 +1,6 @@
 import random
 import os
+import numpy as np
 
 class dataset:
     def __init__(self, data_path, processed_flag):
@@ -8,29 +9,65 @@ class dataset:
         - take in the .data file, process it where we get a numpy array of strings where dimensions are as follows: self.intake_data[example][features]
         - MAKE SURE TO ADD EXTRACT FUNCTIONALITY FOR BOTH THE TUNING SET AND VALIDATION SET
         '''
-        return
+        # FINN ADDS UP HERE
+        self.intake_data = []
+        self.tune_set = []
+        self.validate_set = []
+        # CARLOS ADDS DOWN HERE
+
+        # Data is being read in from original .DATA file
+        if (processed_flag == False):
+            # Separating the .data file into lines, and shuffling the lines
+            with open(data_path, 'r') as file:
+                lines = file.readlines()
+
+            # Deliminate strings into lists
+            for i in range(len(self.data_lines)):
+                lines[i] = lines[i].strip()
+                lines[i] = lines[i].split(',')
+            
+            # Make the list into a numpy array
+            self.intake_data = np.array(lines)
+
+        '''
+        # Data is being extracted from a saved CSV File
+        else:
+            #extract_data()
+        '''
+
     def continuize(self, indices: tuple):
         '''
         This method takes in the indices that need to be continuized. This will look like replacing values that are strings with numbers.
         We want to make sure we call this method BEFORE we shuffle so that we do not have to keep track of which number corresponds to which
         original value. We can figure this out later
         '''
+        string_to_int = {}
+        next_int = 0
+        # This function continuizes a single element so it can be vectorized
+        def convert_to_num(value):
+            nonlocal next_int
+            try:
+                # Try to convert to float
+                return float(value)
+            except ValueError:
+                # If conversion fails, map the string a number
+                if value not in string_to_int:
+                    string_to_int[value] = next_int
+                    next_int += 1
+                return string_to_int[value]
+
+        # Apply convert_to_num to each element in the array
+        self.intake_data = np.vectorize(convert_to_num)
         return
     def impute(self):
         # Replaces question marks in a dataset with a random value between the min/max of an attribute value
         # Breast cancer has a range of 1-10 for the attribute that is missing values
-        '''
-        for example in range(len(self.partitions[partition])):
-            for attribute in range(len(self.partitions[partition][example])):
+        for ex_idx in range(len(self.intake_data)):
+            for att_idx in range(len(self.intake_data[ex_idx])):
                 # if this statement is entered that means there is a missing piece of attribute data, so imputation needs to occur at this location
-                if (self.partitions[partition][example][attribute] == '?'):
-                    # This will be the imputation method using 'y' or 'n'
-                    if (voter_bool == True):
-                        self.partitions[partition][example][attribute] = random.choice(voter_options)
+                if (self.intake_data[ex_idx][att_idx] == '?'):
                     # This will be the imputation method using range 1-10
-                    else:
-                        self.partitions[partition][example][attribute] = str(random.randint(1,10))
-        '''
+                        self.intake_data[ex_idx][att_idx] = str(random.randint(1,10))
         return
     def shuffle(self):
         '''
@@ -38,6 +75,7 @@ class dataset:
         - This method will shuffle the self.intake_data by examples
         - Consider adding a flag where this can shuffle higher dimensional array (not explicitly necessary)
         '''
+        np.random.shuffle(self.intake_data)
         return
     def sort(self, prediction_type_flag):
         '''
