@@ -1,9 +1,5 @@
-import random
-import os
-import numpy as np
-
 class dataset:
-    def __init__(self, data_path, processed_flag):
+    def __init__(self, data_path: str, processed_flag: str):
         '''
         - INSTANTIATE ALL self VARIABLES IN THE INIT
         - take in the .data file, process it where we get a numpy array of strings where dimensions are as follows: self.intake_data[example][features]
@@ -23,7 +19,7 @@ class dataset:
                 lines = file.readlines()
 
             # Deliminate strings into lists
-            for i in range(len(self.data_lines)):
+            for i in range(len(lines)):
                 lines[i] = lines[i].strip()
                 lines[i] = lines[i].split(',')
             
@@ -36,7 +32,7 @@ class dataset:
             #extract_data()
         '''
 
-    def continuize(self, indices: tuple):
+    def continuize(self):
         '''
         This method takes in the indices that need to be continuized. This will look like replacing values that are strings with numbers.
         We want to make sure we call this method BEFORE we shuffle so that we do not have to keep track of which number corresponds to which
@@ -58,7 +54,8 @@ class dataset:
                 return string_to_int[value]
 
         # Apply convert_to_num to each element in the array
-        self.intake_data = np.vectorize(convert_to_num)
+        vectorization = np.vectorize(convert_to_num)
+        self.intake_data = vectorization(self.intake_data)
         return
     def impute(self):
         # Replaces question marks in a dataset with a random value between the min/max of an attribute value
@@ -84,8 +81,10 @@ class dataset:
         - The prediction_type_flag essentially tells us if the last indice can be converted to a float or not. Regression datasets are sorted by value
         '''
         if prediction_type_flag == "regression":
+            print('REGRESSION')
             sorted_data = self.intake_data[self.intake_data[:, -1].astype(float).argsort()]
         else:
+            print("CLASSIFICATION")
             sorted_data = self.intake_data[self.intake_data[:, -1].argsort()]
 
         self.intake_data = sorted_data
@@ -97,11 +96,11 @@ class dataset:
         '''
         tune_data = []
 
-        for i in range(self.intake_data.shape[0]):
+        for i, example in enumerate(self.intake_data):
             if(i % 10) == 0:
-                tune_data.append(self.intake_data[i])
+                tune_data.append(example)
             else:
-                self.ninety_data.append(self.intake_data[i])
+                self.ninety_data.append(example)
 
         self.tune_set = np.array(tune_data)
         self.ninety_data = np.array(self.ninety_data)
@@ -120,10 +119,18 @@ class dataset:
             fold_index = i % 10
             
             example_position = fold_counts[fold_index]  #This finds the next null example
-            self.validate_set[fold_index, example_position] = example
+            self.validate_set[fold_index, int(example_position)] = example
 
         
             fold_counts[fold_index] += 1
+        return
+    def shuffle_splits(self):
+        '''
+        Shuffles the tune set and validate set after they are complete and stratified
+        '''
+        np.random.shuffle(self.tune_set)
+        for partition_idx, partition in enumerate(self.validate_set):
+            np.random.shuffle(partition)
         return
     
 
