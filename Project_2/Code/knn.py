@@ -31,19 +31,21 @@ class knn:
         - the third argument is the point that is being referenced for distances
         - The method returns the class/regression value of the k_n nearest neighbors
         '''
-        model.astype(np.float32)
-        test_point.astype(np.float32)
+        model
+        test_point
 
         def euclidean_distance(point1: np, point2: np):
             # np.linalg.norm calculates the euclidean distances between two points
-            return np.linalg.norm(point1 - point2)
+            #EDITED!!
+            return np.linalg.norm(point1 - float(point2))
                 
         
         distances = np.zeros((model.shape[0]), dtype=float)
         for i, model_point in enumerate(model):
             # calculate euclidean distance
             # COULD ALWAYS SWAP THIS FUNCTION CALL FOR THE ONE LINER
-            distances[i] = euclidean_distance(test_point, model_point[i][:-1])
+            if (model_point[0] != "null"):
+                distances[i] = euclidean_distance(test_point, model_point[i][:-1])
         # np.partitions moves the K_n smallest values in an np array to the front of the array. We then slice the array to get the k_n smallest values
         smallest_distances = np.partition(distances, k_n)[:k_n]
         neighbor_indices = np.where((distances == smallest_distances))

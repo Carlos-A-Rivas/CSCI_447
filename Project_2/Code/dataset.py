@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import random
+import csv
 
 class dataset:
     def __init__(self, data_path: str, processed_flag: str):
@@ -58,7 +59,7 @@ class dataset:
                 return string_to_int[value]
 
         # Apply convert_to_num to each element in the array
-        vectorization = np.vectorize(convert_to_num)
+        vectorization = np.vectorize(convert_to_num, otypes=[float])
         self.intake_data = vectorization(self.intake_data)
         return
     def impute(self):
@@ -141,20 +142,54 @@ class dataset:
         # Takes in an attribute indice, and removes that entire indice from the dataset. This can be used to remove ID numbers
         self.intake_data = np.delete(self.intake_data, indice, 1)
 
-    ## Don't worry about saving for now
-    def save_validate_set(self, save_file_name, save_folder):
-        # Saves the data based on our convention: Each line is a partition, semicolons separate examples, commas separate attributes/labels
-        folder_path = os.path.expanduser(f"{save_folder}/processed_data_new")  
+    
+    def save(self, filename: str):
+        """
+        Saves a 2D or 3D numpy array (full of strings) to a CSV file.
+        """
+        folder_path = os.path.expanduser(f"~/CSCI_447/Project_2/Datasets/processed_data")  
         os.makedirs(folder_path, exist_ok=True)
         #get/create the path to the folder that the file should be saved to
-        file_path = os.path.join(folder_path, save_file_name)
-        #create the file path
-        with open(f"{file_path}.csv", "w") as file:
-            #open a csv file in the desired location
-            for line in self.partitions:
-                partition_lines = ";".join([",".join(map(str, sub_array)) for sub_array in line])
-                #for each partition, join each example by a semi colon and each attribute by a comma
-                file.write(partition_lines + "\n")
-                #write each partition into the file with each 
-        #print(f"CSV file saved to {file_path}")
-        return
+        tune_file_path = os.path.join(folder_path, (filename+'_tune_set.csv'))
+        validate_file_path = os.path.join(folder_path, (filename+'_validate_set.csv'))
+
+        shape_info = None
+        with open(tune_file_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            # Write shape information if it is a 3D array
+            if shape_info:
+                writer.writerow(["shape"] + list(shape_info))
+            # Write data
+            writer.writerows(self.tune_set)
+
+        reshaped_array = np.array([[';'.join(row) for row in batch] for batch in self.validate_set])
+        shape_info = self.validate_set.shape
+        with open(validate_file_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            # Write shape information if it is a 3D array
+            if shape_info:
+                writer.writerow(["shape"] + list(shape_info))
+            # Write data
+            writer.writerows(reshaped_array)
+
+    def extract(self, file_path: str):
+        """
+        Loads data from a CSV file and converts it back to a numpy array in the original format.
+        """
+        tune_file_path = file_path+'_tune_set.csv'
+        validate_file_path = file_path+'_validate_set.csv'
+
+        with open(tune_file_path, mode='r') as file:
+            reader = csv.reader(file)
+            rows = list(reader)
+        self.tune_set = np.array(rows, dtype=str)
+
+
+        with open(validate_file_path, mode='r') as file:
+            reader = csv.reader(file)
+            rows = list(reader)
+        shape_info = tuple(map(int, rows[0][1:]))
+        data = rows[1:]
+        # Split semicolon-delimited strings back into lists for the third dimension
+        reconstructed_data = [[cell.split(';') for cell in row] for row in data]
+        self.validate_set = np.array(reconstructed_data, dtype=str).reshape(shape_info)
