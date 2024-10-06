@@ -4,35 +4,99 @@ import random
 import csv
 from tqdm import tqdm
 from collections import Counter
+from dataset import dataset
 
 class knn:
-    def __init__(self, data: dataset, prediction_type_flag: str):
+    def __init__(self, data: dataset, prediction_type_flag: str, k_n=1, sigma=1.0):
         '''
         - Set a variable equal to the tune and validation sets
         - instantiate self variables
         '''
-        self.k_n = 6
-        self.sigma = 1.0
+        self.k_n = k_n
+        self.sigma = sigma
         self.tune_set = data.tune_set
         self.validate_set = data.validate_set
         self.prediction_type = prediction_type_flag
         self.predictions = []
         self.answers = []
         return
-    def tune(self, prediction_type_flag: str, epochs=50, k_n=1, sigma=1):
+
+
+    def plot_loss(self, metrics: list, parameter: str, increment):
+        # Extract the number of epochs and loss metrics
+        metrics = np.array(metrics)
+        epochs = np.arange(1, metrics.shape[0] + 1) * increment  # Assuming epochs start from 1
+        loss1 = metrics[:, 0]  # First loss metric
+        loss2 = metrics[:, 1]  # Second loss metric
+
+        # Plotting
+        plt.figure(figsize=(10, 6))
+        plt.plot(epochs, loss1, label='Loss Metric 1', marker='o')
+        plt.plot(epochs, loss2, label='Loss Metric 2', marker='o')
+
+        # Adding labels and title
+        plt.xlabel(f'{parameter} Value')
+        plt.ylabel('Loss')
+        plt.title(f'Loss Metrics vs. {parameter} value')
+        plt.legend()
+        plt.grid(True)
+
+        # Show the plot
+        plt.show()
+        plt.close()
+
+
+    def tune(self, epochs=40, k_n_increment=1, sigma_increment=1):
+        # CONSIDER ADDING INCREMENT PARAMETER, WHERE THE PARAMETER DECIDES HOW MUCH EACH PARAMETER
+        # IS INCREMENTED PER EPOCH. SELF.K_N AND SELF.SIGMA WOULD NEED TO INITIALLY BE SET TO THE
+        # INCREMENT, AND IN THE FINAL CALCULATION WHEN CHOOSING THE INDICE THE SELF.K_N/SIGMA WOULD
+        # NEED TO BE MULTIPLIED BY THE INCREMENT
+        '''
+        SIGMA IS PRIMARILY AFFECTING THE MSE, CONSIDER ONLY USING MSE TO DETERMINE SIGMA
+        '''
         '''
         Use default parameters to predict the tune set using each set of 9 partitions as the model.
         Performance should be calculated and averaged across the ENTIRE set of models with the given
         hyperparameter. A hyperparameter is incremented, and predictions is re-run. This process
         repeats until the desired number of epochs are reached.
         '''
-        return
-    def classify(self):
+        k_n_scores = []
+        sigma_scores = []
+        self.k_n = k_n_increment
+        self.sigma = sigma_increment
+        for i in tqdm(range(epochs), desc="Tuning K_n..."):
+            self.k_n += k_n_increment
+            k_n_scores.append(self.classify(True))
+        self.plot_loss(k_n_scores, 'K_n', k_n_increment)
+            
+
+        if (self.prediction_type == 'regression'):    
+            for i in tqdm(range(epochs), desc="Tuning sigma..."):
+                self.sigma += sigma_increment
+                sigma_scores.append(self.regress(True))
+            self.plot_loss(sigma_scores, 'Sigma', sigma_increment)
+
+        k_n_scores = np.array(k_n_scores)
+        best_k_n_epochs = np.argmax(k_n_scores, axis=0)
+        self.k_n = (round(np.mean(best_k_n_epochs)) + 1) * k_n_increment
+        print(f"Tuned k_n: {self.k_n}")
+        if (self.prediction_type == 'regression'):
+            # CURRENTLY IS ONLY USING MSE TO TUNE SIGMA
+            sigma_scores = np.array(sigma_scores)
+            best_sigma_epochs = np.argmin(sigma_scores, axis=0)
+            self.sigma = (round(np.mean(best_sigma_epochs[0] + 1))) * sigma_increment
+            print(f"Tuned sigma: {self.sigma}")
+        return  
+    def classify(self, tuning_flag=False):
         '''
         classify holdout set repeat for each fold
         '''
-        for fold_idx in tqdm(range(10)):
-            hold_out_fold = self.validate_set[fold_idx]
+        predictions = []
+        answers = []
+        hold_out_fold = self.tune_set
+        for fold_idx in tqdm(range(10), leave=False):
+            if (tuning_flag == False):
+                hold_out_fold = self.validate_set[fold_idx]
             model = np.concatenate([self.validate_set[i] for i in range(10) if i != fold_idx])
             #print(model.shape)
             #print(hold_out_fold.shape)
@@ -47,22 +111,26 @@ class knn:
                     label_counts = Counter(neighbor_labels)
                     predicted_label = label_counts.most_common(1)[0][0]
 
-                    self.predictions.append(predicted_label)
-                    self.answers.append(true_label)
+                    predictions.append(predicted_label)
+                    answers.append(true_label)
 
-        self.predictions = np.array(self.predictions)
-        self.answers = np.array(self.answers)
+        self.predictions = np.array(predictions)
+        self.answers = np.array(answers)
         Loss_values = self.calculate_loss()
-        print(f"Loss Values: {Loss_values}")
+        #print(f"Loss Values: {Loss_values}")
         return Loss_values
     
     
-    def regress(self):
+    def regress(self, tuning_flag=False):
         '''
         regress each hold out set repeat for each fold
         '''
-        for fold_idx in tqdm(range(10)):
-            hold_out_fold = self.validate_set[fold_idx]
+        predictions = []
+        answers = []
+        hold_out_fold = self.tune_set
+        for fold_idx in tqdm(range(10), leave=False):
+            if (tuning_flag == False):
+                hold_out_fold = self.validate_set[fold_idx]
             model = np.concatenate([self.validate_set[i] for i in range(10) if i != fold_idx])
             #print(model.shape)
             #print(hold_out_fold.shape)
@@ -85,13 +153,14 @@ class knn:
 
                     predicted_value = weighted_sum / weight_total if weight_total != 0 else np.mean(neighbor_values.astype(float))
 
-                    self.predictions.append(predicted_value)
-                    self.answers.append(true_label)
+                    predictions.append(predicted_value)
+                    answers.append(true_label)
 
-        self.predictions = np.array(self.predictions)
-        self.answers = np.array(self.answers)
+        self.predictions = np.array(predictions)
+        self.answers = np.array(answers)
         Loss_values = self.calculate_loss()
-        print(f"Loss Values: {Loss_values}")
+        #print(f"Loss Values: {Loss_values}")
+        return Loss_values
     
 
     # NEEDS HEAVY EDITING
@@ -101,10 +170,10 @@ class knn:
             Regression: Mean squared error, Mean absolute
 
             '''
-            loss = {}
+            loss = []
             if(self.prediction_type == "classification"):
                 accuracy = np.mean(self.predictions == self.answers)
-                loss["0/1 Loss"] = accuracy
+                loss.append(float(accuracy))
 
                 unique_classes = np.unique(self.answers)
                 f1_scores = []
@@ -122,14 +191,14 @@ class knn:
                         f1 = 0
                     f1_scores.append(f1)
 
-                loss["F1 Score"] = np.mean(f1_scores)
+                loss.append(float(np.mean(f1_scores)))
 
             else:
                 mse = np.mean(self.answers.astype(float) - self.predictions.astype(float)) ** 2
-                loss["MSE"] = mse
+                loss.append(float(mse))
 
                 mae = np.mean(np.abs(self.answers.astype(float) - self.predictions.astype(float)))
-                loss["MAE"] = mae
+                loss.append(float(mae))
             return loss
     
 
