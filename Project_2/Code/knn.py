@@ -1,5 +1,6 @@
 from dataset import dataset
 import numpy as np
+from collections import Counter
 
 class knn:
     def __init__(self, data: dataset, prediction_type_flag: str):
