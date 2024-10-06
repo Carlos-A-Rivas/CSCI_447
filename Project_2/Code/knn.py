@@ -1,7 +1,9 @@
-from dataset import dataset
+import os
 import numpy as np
+import random
+import csv
+from tqdm import tqdm
 from collections import Counter
-import tqdm
 
 class knn:
     def __init__(self, data: dataset, prediction_type_flag: str):
@@ -9,7 +11,8 @@ class knn:
         - Set a variable equal to the tune and validation sets
         - instantiate self variables
         '''
-        self.k_n = 25
+        self.k_n = 6
+        self.sigma = 1.0
         self.tune_set = data.tune_set
         self.validate_set = data.validate_set
         self.prediction_type = prediction_type_flag
@@ -35,19 +38,17 @@ class knn:
             #print(hold_out_fold.shape)
 
             for test_point in hold_out_fold:
-            
-                true_label = test_point[-1]
-
                 if (test_point[0] != 'null'):
+                    true_label = test_point[-1]
                     neighbor_indices = self.get_neighbors(model, test_point, self.k_n)
-                #print(f"Neighbor Indices:\n{neighbor_indices}")
-                neighbor_labels = model[neighbor_indices, -1]
-                #print(f"Neighbor Labels: {neighbor_labels}")
-                label_counts = Counter(neighbor_labels)
-                predicted_label = label_counts.most_common(1)[0][0]
+                    #print(f"Neighbor Indices:\n{neighbor_indices}")
+                    neighbor_labels = model[neighbor_indices, -1]
+                    #print(f"Neighbor Labels: {neighbor_labels}")
+                    label_counts = Counter(neighbor_labels)
+                    predicted_label = label_counts.most_common(1)[0][0]
 
-                self.predictions.append(predicted_label)
-                self.answers.append(true_label)
+                    self.predictions.append(predicted_label)
+                    self.answers.append(true_label)
 
         self.predictions = np.array(self.predictions)
         self.answers = np.array(self.answers)
@@ -57,7 +58,40 @@ class knn:
     
     
     def regress(self):
-        return
+        '''
+        regress each hold out set repeat for each fold
+        '''
+        for fold_idx in tqdm(range(10)):
+            hold_out_fold = self.validate_set[fold_idx]
+            model = np.concatenate([self.validate_set[i] for i in range(10) if i != fold_idx])
+            #print(model.shape)
+            #print(hold_out_fold.shape)
+
+            for test_point in hold_out_fold:
+                if (test_point[0] != 'null'):
+                    true_label = test_point[-1]
+                    neighbor_indices = self.get_neighbors(model, test_point, self.k_n)
+                    #print(f"Neighbor Indices:\n{neighbor_indices}")
+                    nearest_neighbors = model[neighbor_indices]
+                    #print(f"Nearest Neighbors: {nearest_neighbors}")
+                    neighbor_values = nearest_neighbors[:, -1]
+
+                    distances = np.array([np.linalg.norm(test_point[:-1].astype(float) - neighbor[:-1].astype(float)) for neighbor in nearest_neighbors])
+                
+                    rbf_weights = np.exp(- (distances ** 2) / (2 * self.sigma ** 2))
+                    #print(f"Should be equal to last indice of the nearest neighbors: {nearest_neighbors[:, -1]}")
+                    weighted_sum = np.sum(rbf_weights * nearest_neighbors[:, -1].astype(float))
+                    weight_total = np.sum(rbf_weights)
+
+                    predicted_value = weighted_sum / weight_total if weight_total != 0 else np.mean(neighbor_values.astype(float))
+
+                    self.predictions.append(predicted_value)
+                    self.answers.append(true_label)
+
+        self.predictions = np.array(self.predictions)
+        self.answers = np.array(self.answers)
+        Loss_values = self.calculate_loss()
+        print(f"Loss Values: {Loss_values}")
     
 
     # NEEDS HEAVY EDITING
@@ -91,10 +125,10 @@ class knn:
                 loss["F1 Score"] = np.mean(f1_scores)
 
             else:
-                mse = np.mean(self.answers - self.predictions) ** 2
+                mse = np.mean(self.answers.astype(float) - self.predictions.astype(float)) ** 2
                 loss["MSE"] = mse
 
-                mae = np.mean(np.abs(self.answers - self.predictions))
+                mae = np.mean(np.abs(self.answers.astype(float) - self.predictions.astype(float)))
                 loss["MAE"] = mae
             return loss
     
