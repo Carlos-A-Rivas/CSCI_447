@@ -5,6 +5,7 @@ import csv
 from tqdm import tqdm
 from collections import Counter
 from dataset import dataset
+import matplotlib as plt
 
 class knn:
     def __init__(self, data: dataset, prediction_type_flag: str, k_n=1, sigma=1.0):
@@ -20,8 +21,6 @@ class knn:
         self.predictions = []
         self.answers = []
         return
-
-
     def plot_loss(self, metrics: list, parameter: str, increment):
         # Extract the number of epochs and loss metrics
         metrics = np.array(metrics)
@@ -44,9 +43,7 @@ class knn:
         # Show the plot
         plt.show()
         plt.close()
-
-
-    def tune(self, epochs=40, k_n_increment=1, sigma_increment=1):
+    def tune(self, epochs=15, k_n_increment=1, sigma_increment=1):
         # CONSIDER ADDING INCREMENT PARAMETER, WHERE THE PARAMETER DECIDES HOW MUCH EACH PARAMETER
         # IS INCREMENTED PER EPOCH. SELF.K_N AND SELF.SIGMA WOULD NEED TO INITIALLY BE SET TO THE
         # INCREMENT, AND IN THE FINAL CALCULATION WHEN CHOOSING THE INDICE THE SELF.K_N/SIGMA WOULD
@@ -66,7 +63,10 @@ class knn:
         self.sigma = sigma_increment
         for i in tqdm(range(epochs), desc="Tuning K_n..."):
             self.k_n += k_n_increment
-            k_n_scores.append(self.classify(True))
+            if (self.prediction_type == 'regression'):
+                k_n_scores.append(self.regress(True))
+            else:
+                k_n_scores.append(self.classify(True))
         self.plot_loss(k_n_scores, 'K_n', k_n_increment)
             
 
@@ -118,9 +118,7 @@ class knn:
         self.answers = np.array(answers)
         Loss_values = self.calculate_loss()
         #print(f"Loss Values: {Loss_values}")
-        return Loss_values
-    
-    
+        return Loss_values   
     def regress(self, tuning_flag=False):
         '''
         regress each hold out set repeat for each fold
@@ -161,9 +159,6 @@ class knn:
         Loss_values = self.calculate_loss()
         #print(f"Loss Values: {Loss_values}")
         return Loss_values
-    
-
-    # NEEDS HEAVY EDITING
     def calculate_loss(self):
             '''
             Classifiction: 0/1 loss, F1 score
@@ -200,10 +195,6 @@ class knn:
                 mae = np.mean(np.abs(self.answers.astype(float) - self.predictions.astype(float)))
                 loss.append(float(mae))
             return loss
-    
-
-
-
     def euclidean_distance(self, point1: np, point2: np):
         # np.linalg.norm calculates the euclidean distances between two points
         #print(f"Point 1 type: {point1.shape}")
