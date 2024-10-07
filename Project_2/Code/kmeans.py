@@ -59,7 +59,7 @@ class kmeans:
         Performance is averaged across all 10 folds. This process repeats for a specified number
         of epochs with the hyperparameters incrementing on each epoch.
         '''
-
+        self.cluster()
         # Initialize the tuning lists to store performance metrics
         k_c_scores = []
         k_n_scores = []
@@ -80,7 +80,7 @@ class kmeans:
                 k_c_scores.append(self.classify(True))
 
         self.plot_loss(k_c_scores, 'K_c', k_c_increment)
-        \
+        
         # Tune k_n (number of neighbors)
         for i in tqdm(range(epochs), desc="Tuning K_n..."):
             self.k_n += k_n_increment
@@ -183,6 +183,7 @@ class kmeans:
         '''
         classify holdout set repeat for each fold
         '''
+        self.cluster()
         predictions = []
         answers = []
         hold_out_fold = self.tune_set
@@ -217,6 +218,7 @@ class kmeans:
         return Loss_values   
         
     def regress(self, tuning_flag):
+        self.cluster()
         predictions = []
         answers = []
         hold_out_fold = self.tune_set
