@@ -1,11 +1,8 @@
-import os
-import numpy as np
-import random
-import csv
-from tqdm import tqdm
-from collections import Counter
 from dataset import dataset
 import matplotlib as plt
+import numpy as np
+import tqdm
+from collections import Counter
 
 class knn:
     def __init__(self, data: dataset, prediction_type_flag: str, k_n=1, sigma=1.0):
@@ -77,7 +74,10 @@ class knn:
             self.plot_loss(sigma_scores, 'Sigma', sigma_increment)
 
         k_n_scores = np.array(k_n_scores)
-        best_k_n_epochs = np.argmax(k_n_scores, axis=0)
+        if (self.prediction_type == 'regression'):
+            best_k_n_epochs = np.argmin(k_n_scores, axis=0)
+        else:
+            best_k_n_epochs = np.argmax(k_n_scores, axis=0)
         self.k_n = (round(np.mean(best_k_n_epochs)) + 1) * k_n_increment
         print(f"Tuned k_n: {self.k_n}")
         if (self.prediction_type == 'regression'):
