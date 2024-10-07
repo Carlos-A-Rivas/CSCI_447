@@ -5,6 +5,7 @@ import csv
 from tqdm import tqdm
 from collections import Counter
 from dataset import dataset
+import matplotlib as plt
 
 class knn:
     def __init__(self, data: dataset, prediction_type_flag: str, k_n=1, sigma=1.0):
