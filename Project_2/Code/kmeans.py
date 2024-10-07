@@ -129,7 +129,7 @@ class kmeans:
             
             model = np.concatenate([self.validate_set[i] for i in range(10) if i != fold_idx])
             model[model == 'null'] = np.nan
-            #model = model.astype(float)
+            model = model.astype(float)
 
             
             model = model[~np.isnan(model).any(axis=1)]
