@@ -44,13 +44,13 @@ class enn:
         plt.show()
         plt.close()
     def tune(self, epochs=15, k_n_increment=1, sigma_increment=1):
-        self.reduced_models = self.reduce_dataset(self.validate_set)
         '''
         for fold_idx, fold in enumerate(self.validate_set):
             print(f"Number of examples in OG data fold {fold_idx+1}: {len(fold)}")
         for fold_idx, fold in enumerate(reduced_models):
             print(f"Number of examples in reduced data fold {fold_idx+1}: {len(fold)}")
         '''
+        self.reduced_models = self.reduce_dataset(self.validate_set)
         k_n_scores = []
         sigma_scores = []
         self.k_n = k_n_increment
