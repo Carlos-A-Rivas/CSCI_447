@@ -173,7 +173,7 @@ class kmeans:
         #print(f"Final Centroids Shape: {self.centroids.shape}")
 
     
-    def classify(self, tuning_flag):
+    def classify(self, tuning_flag=False):
         '''
         classify holdout set repeat for each fold
         '''
@@ -211,7 +211,7 @@ class kmeans:
         #print(f"Loss Values: {Loss_values}")
         return Loss_values   
         
-    def regress(self, tuning_flag):
+    def regress(self, tuning_flag=False):
         self.cluster()
         predictions = []
         answers = []
