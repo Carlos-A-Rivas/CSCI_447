@@ -25,6 +25,7 @@ class kmeans:
 
 
         return
+    
     def plot_loss(self, metrics: list, parameter: str, increment):
         # Extract the number of epochs and loss metrics
         metrics = np.array(metrics)
@@ -47,13 +48,14 @@ class kmeans:
         # Show the plot
         plt.show()
         plt.close()
+
     def tune(self, epochs=15, k_c_increment=1, k_n_increment=1, sigma_increment=1):
         '''
         Tune number of clusters (k_c), number of neighbors (k_n), and sigma (for regression).
         Performance is averaged across all 10 folds. This process repeats for a specified number
         of epochs with the hyperparameters incrementing on each epoch.
         '''
-        self.cluster()
+
         # Initialize the tuning lists to store performance metrics
         k_c_scores = []
         k_n_scores = []
@@ -92,13 +94,13 @@ class kmeans:
                 sigma_scores.append(self.regress(True))
             self.plot_loss(sigma_scores, 'Sigma', sigma_increment)
 
-        # Select best parameters based on performance
+        
         k_c_scores = np.array(k_c_scores)
         if(self.prediction_type == 'classification'):
             best_k_c_epochs = np.argmax(k_c_scores, axis=0)
         else:
             best_k_c_epochs = np.argmin(k_c_scores,axis=0)
-        self.k_c = (round(np.mean(best_k_c_epochs)) + 1) * k_c_increment
+        self.k_c = (round(np.mean(best_k_c_epochs+1))) * k_c_increment
         print(f"Tuned k_c: {self.k_c}")
 
         k_n_scores = np.array(k_n_scores)
@@ -119,71 +121,79 @@ class kmeans:
 
    
     def cluster(self):
+        
         centroids_list = []
         
-        # Get into correct fold
+        # Get into correct fold 
         for fold_idx in tqdm(range(10), leave=False): 
-            model = np.concatenate([self.validate_set[i] for i in range(10) if i != fold_idx]) 
-            model[model == 'null'] = np.nan
+            
+            model = np.concatenate([self.validate_set[i] for i in range(10) if i != fold_idx])
+            model[model == 'null'] = np.nan 
+                
             model = model.astype(float)
 
-            # Remove rows with NaN values from the model
+            
             model = model[~np.isnan(model).any(axis=1)]
             
-            # Initialize centroids
-            centroids = model[np.random.choice(model.shape[0], self.k_c, replace=False)]
             
+            centroids = model[np.random.choice(model.shape[0], self.k_c, replace=False)]
             
             prev_centroids = np.copy(centroids)
             convergence_threshold = 0.05
-
             max_iterations = 50
             iteration = 0
 
             while iteration < max_iterations:
+                
                 distances = np.linalg.norm(model[:, np.newaxis] - centroids, axis=2)
+                
+                
                 labels = np.argmin(distances, axis=1)
-
+                
                 prev_centroids = centroids.copy()
 
+                
                 for i in range(self.k_c):
-                    if np.any(labels == i):
+                    if np.any(labels == i): 
                         centroids[i] = np.nanmean(model[labels == i], axis=0)
                     else:
+                        
                         centroids[i] = model[np.random.choice(model.shape[0])]
 
+               
                 relative_change = np.abs(centroids - prev_centroids) / (np.abs(prev_centroids) + 1e-10)
                 
                 if np.all(relative_change < convergence_threshold):
                     break
 
                 iteration += 1
-                
 
             if iteration == max_iterations:
                 print("Warning: Maximum iterations reached without convergence.")
-
-
-  
-
-            # Output final centroids
+            
+            
             centroids_list.append(centroids)
 
+
         self.centroids = np.array(centroids_list)
-        #print(f"Final Centroids Shape: {self.centroids.shape}")
+        #print(f"Final Centroids: {self.centroids}")  # Should be [10 x k_c x feature_count]
+
 
     
-    def classify(self, tuning_flag=False):
+    def classify(self, tuning_flag = False):
         '''
         classify holdout set repeat for each fold
         '''
         self.cluster()
+        Loss_values = np.zeros((10, 2))
         predictions = []
+        #print(f"self.k_c = {self.k_c}")
         answers = []
         hold_out_fold = self.tune_set
         for fold_idx in tqdm(range(10), leave=False):
             if (tuning_flag == False):
                 hold_out_fold = self.validate_set[fold_idx]
+
             model = self.centroids[fold_idx]
             #print(model.shape)
             #print(hold_out_fold.shape)
@@ -201,57 +211,72 @@ class kmeans:
                     predictions.append(predicted_label)
                     answers.append(true_label)
 
-        self.predictions = np.array(predictions)
-        self.predictions = np.rint(self.predictions).astype(int).astype(str)
-        self.predictions = np.array(self.predictions)
-        self.answers = np.array(answers)
+            self.predictions = np.array(predictions)
+            self.predictions = np.rint(self.predictions).astype(int).astype(str)
+            self.answers = np.array(answers).astype(float)
+            self.answers = np.rint(self.answers).astype(int).astype(str)
         #print(f"Predictions: {self.predictions}")
         #print(f"Answers: {self.answers}")
-        Loss_values = self.calculate_loss()
-        #print(f"Loss Values: {Loss_values}")
-        return Loss_values   
+            Loss_values[fold_idx] = self.calculate_loss()
+            predictions = []
+            answers = []
+            #print(f"Loss Values: {Loss_values}")
+        if tuning_flag:
+            average_loss = np.mean(Loss_values, axis=0)
+            return average_loss  
+        else:
+            print(f"Loss: {Loss_values}")
+            
+            return Loss_values   
         
-    def regress(self, tuning_flag=False):
+    def regress(self, tuning_flag = False):
         self.cluster()
         predictions = []
         answers = []
+        Loss_values = np.zeros((10, 2))  
+
         hold_out_fold = self.tune_set
         for fold_idx in tqdm(range(10), leave=False):
-            if (tuning_flag == False):
+            if not tuning_flag:
                 hold_out_fold = self.validate_set[fold_idx]
+
             model = self.centroids[fold_idx]
-            #print(model.shape)
-            #print(hold_out_fold.shape)
 
             for test_point in hold_out_fold:
-                if (test_point[0] != 'null'):
+                if test_point[0] != 'null':
                     true_label = test_point[-1]
                     neighbor_indices = self.get_neighbors(model, test_point, self.k_n)
-                    #print(f"Neighbor Indices:\n{neighbor_indices}")
                     nearest_neighbors = model[neighbor_indices]
-                    #print(f"Nearest Neighbors: {nearest_neighbors}")
-                    neighbor_values = nearest_neighbors[:, -1]
 
                     distances = np.array([np.linalg.norm(test_point[:-1].astype(float) - neighbor[:-1].astype(float)) for neighbor in nearest_neighbors])
-                
                     rbf_weights = np.exp(- (distances ** 2) / (2 * self.sigma ** 2))
-                    #print(f"Should be equal to last indice of the nearest neighbors: {nearest_neighbors[:, -1]}")
                     weighted_sum = np.sum(rbf_weights * nearest_neighbors[:, -1].astype(float))
                     weight_total = np.sum(rbf_weights)
 
-                    predicted_value = weighted_sum / weight_total if weight_total != 0 else np.mean(neighbor_values.astype(float))
+                    predicted_value = weighted_sum / weight_total if weight_total != 0 else np.mean(nearest_neighbors[:, -1].astype(float))
 
                     predictions.append(predicted_value)
                     answers.append(true_label)
 
-        self.predictions = np.array(predictions)
-        self.predictions = np.rint(self.predictions).astype(int).astype(str)
-        self.answers = np.array(answers)
-        #print(f"Predictions:{self.predictions}")
-        #print(f"Answers: {self.answers}")
-        Loss_values = self.calculate_loss()
-        #print(f"Loss Values: {Loss_values}")
-        return Loss_values
+            self.predictions = np.array(predictions)
+            self.answers = np.array(answers)
+
+            # Calculate loss for the current fold and store it
+            Loss_values[fold_idx] = self.calculate_loss()
+
+            
+            predictions = []
+            answers = []
+
+        if tuning_flag:
+            average_loss = np.mean(Loss_values, axis=0)
+            return average_loss  
+        else:
+            
+            
+            return Loss_values
+
+
     def euclidean_distance(self, point1: np, point2: np):
         # np.linalg.norm calculates the euclidean distances between two points
         #print(f"Point 1 type: {point1.shape}")
@@ -294,7 +319,7 @@ class kmeans:
 
                 mae = np.mean(np.abs(self.answers.astype(float) - self.predictions.astype(float)))
                 loss.append(float(mae))
-            return loss
+            return loss 
     def get_neighbors(self, model: np, test_point: np, k_n: int):
         '''
         - Feed this function a NxN numpy array where the first dimension is num of examples and the second dimension is num of freatures
