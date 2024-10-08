@@ -36,7 +36,13 @@ class dataset:
         else:
             #extract_data()
         '''
-
+    def normalize(self):
+        '''
+        performs mim-max normalization on regression values
+        '''
+        values = self.intake_data[:,-1].astype(float)
+        normalized_values = (values - values.min()) / (values.max() - values.min())
+        self.intake_data[:, -1] = normalized_values
     def continuize(self):
         '''
         This method takes in the indices that need to be continuized. This will look like replacing values that are strings with numbers.
