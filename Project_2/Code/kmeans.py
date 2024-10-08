@@ -8,11 +8,12 @@ import matplotlib.pyplot as plt
 from dataset import dataset
 
 class kmeans:
-    def __init__(self, data: dataset, prediction_type_flag: str, k_c = 1, k_n = 1, sigma = 1.0):
+    def __init__(self, data: dataset, prediction_type_flag: str, k_c = 1, k_n = 1, sigma = 1.0, suppress_plots=True):
         '''
         - Set a variable equal to the tune and validation sets
         - instantiate self variables
         '''
+        self.suppress_plots = suppress_plots
         self.k_n = k_n
         self.sigma = sigma
         self.k_c = k_c
@@ -74,8 +75,8 @@ class kmeans:
                 k_c_scores.append(self.regress(True))
             else:
                 k_c_scores.append(self.classify(True))
-
-        self.plot_loss(k_c_scores, 'K_c', k_c_increment)
+        if (self.suppress_plots == False):
+            self.plot_loss(k_c_scores, 'K_c', k_c_increment)
         
         # Tune k_n (number of neighbors)
         for i in tqdm(range(epochs), desc="Tuning K_n..."):
@@ -84,15 +85,16 @@ class kmeans:
                 k_n_scores.append(self.regress(True))
             else:
                 k_n_scores.append(self.classify(True))
-
-        self.plot_loss(k_n_scores, 'K_n', k_n_increment)
+        if (self.suppress_plots == False):
+            self.plot_loss(k_n_scores, 'K_n', k_n_increment)
         
         # Tune sigma (only for regression)
         if self.prediction_type == 'regression':
             for i in tqdm(range(epochs), desc="Tuning Sigma..."):
                 self.sigma += sigma_increment
                 sigma_scores.append(self.regress(True))
-            self.plot_loss(sigma_scores, 'Sigma', sigma_increment)
+            if (self.suppress_plots == False):
+                self.plot_loss(sigma_scores, 'Sigma', sigma_increment)
 
         
         k_c_scores = np.array(k_c_scores)
