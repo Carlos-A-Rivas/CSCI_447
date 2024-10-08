@@ -226,7 +226,6 @@ class kmeans:
             return average_loss  
         else:
             print(f"Loss: {Loss_values}")
-            
             return Loss_values   
         
     def regress(self, tuning_flag = False):
@@ -272,8 +271,6 @@ class kmeans:
             average_loss = np.mean(Loss_values, axis=0)
             return average_loss  
         else:
-            
-            
             return Loss_values
 
 

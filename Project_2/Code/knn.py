@@ -91,6 +91,7 @@ class knn:
         '''
         classify holdout set repeat for each fold
         '''
+        Loss_values = np.zeros((10, 2))
         predictions = []
         answers = []
         hold_out_fold = self.tune_set
@@ -113,16 +114,22 @@ class knn:
 
                     predictions.append(predicted_label)
                     answers.append(true_label)
+            Loss_values[fold_idx] = self.calculate_loss()
 
         self.predictions = np.array(predictions)
         self.answers = np.array(answers)
-        Loss_values = self.calculate_loss()
         #print(f"Loss Values: {Loss_values}")
-        return Loss_values   
+        if tuning_flag:
+            average_loss = np.mean(Loss_values, axis=0)
+            return average_loss  
+        else:
+            print(f"Loss: {Loss_values}")
+            return Loss_values 
     def regress(self, tuning_flag=False):
         '''
         regress each hold out set repeat for each fold
         '''
+        Loss_values = np.zeros((10, 2))  
         predictions = []
         answers = []
         hold_out_fold = self.tune_set
@@ -153,12 +160,16 @@ class knn:
 
                     predictions.append(predicted_value)
                     answers.append(true_label)
+            Loss_values[fold_idx] = self.calculate_loss()
 
         self.predictions = np.array(predictions)
         self.answers = np.array(answers)
-        Loss_values = self.calculate_loss()
         #print(f"Loss Values: {Loss_values}")
-        return Loss_values
+        if tuning_flag:
+            average_loss = np.mean(Loss_values, axis=0)
+            return average_loss  
+        else:
+            return Loss_values
     def calculate_loss(self):
             '''
             Classifiction: 0/1 loss, F1 score
