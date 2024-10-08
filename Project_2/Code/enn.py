@@ -166,7 +166,7 @@ class enn:
                     label_counts = Counter(neighbor_labels)
                     predicted_label = label_counts.most_common(1)[0][0]
 
-                    predictions.append(predicted_label)
+                    predictions.append(float(predicted_label))
                     answers.append(true_label)
 
             self.predictions = np.array(predictions)
@@ -223,14 +223,10 @@ class enn:
                     answers.append(true_label)
                     
             self.predictions = np.array(predictions)
-            self.predictions = np.rint(self.predictions).astype(int).astype(str)
-            self.answers = np.array(answers).astype(float)
-            self.answers = np.rint(self.answers).astype(int).astype(str)
-            #print(f"Predictions: {self.predictions}")
-            #print(f"Answers: {self.answers}")
+            self.answers = np.array(answers)
+
+            # Calculate loss for the current fold and store it
             Loss_values[fold_idx] = self.calculate_loss()
-            predictions = []
-            answers = []
 
         if tuning_flag:
             average_loss = np.mean(Loss_values, axis=0)
