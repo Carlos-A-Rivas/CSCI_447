@@ -117,11 +117,17 @@ class knn:
 
                     predictions.append(predicted_label)
                     answers.append(true_label)
-            Loss_values[fold_idx] = self.calculate_loss()
 
-        self.predictions = np.array(predictions)
-        self.answers = np.array(answers)
-        #print(f"Loss Values: {Loss_values}")
+            self.predictions = np.array(predictions)
+            self.predictions = np.rint(self.predictions).astype(int).astype(str)
+            self.answers = np.array(answers).astype(float)
+            self.answers = np.rint(self.answers).astype(int).astype(str)
+            #print(f"Predictions: {self.predictions}")
+            #print(f"Answers: {self.answers}")
+            Loss_values[fold_idx] = self.calculate_loss()
+            predictions = []
+            answers = []
+
         if tuning_flag:
             average_loss = np.mean(Loss_values, axis=0)
             return average_loss  
@@ -163,11 +169,17 @@ class knn:
 
                     predictions.append(predicted_value)
                     answers.append(true_label)
-            Loss_values[fold_idx] = self.calculate_loss()
 
-        self.predictions = np.array(predictions)
-        self.answers = np.array(answers)
-        #print(f"Loss Values: {Loss_values}")
+            self.predictions = np.array(predictions)
+            self.predictions = np.rint(self.predictions).astype(int).astype(str)
+            self.answers = np.array(answers).astype(float)
+            self.answers = np.rint(self.answers).astype(int).astype(str)
+            #print(f"Predictions: {self.predictions}")
+            #print(f"Answers: {self.answers}")
+            Loss_values[fold_idx] = self.calculate_loss()
+            predictions = []
+            answers = []
+
         if tuning_flag:
             average_loss = np.mean(Loss_values, axis=0)
             return average_loss  
