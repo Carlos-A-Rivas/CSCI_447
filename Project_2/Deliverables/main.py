@@ -6,6 +6,9 @@ from additional_functions import save_arrays_to_csv
 from additional_functions import load_arrays_from_csv
 from additional_functions import make_plots_2
 
+'''
+THE CODE FOR THE VIDEO DEMO WAS MODIFIED TO ADD ADDITIONAL PRINT STATEMENTS. THAT CODE CAN BE FOUND IN THE VIDEO DEMO JUPYTER NOTEBOOK FILE
+'''
 
 def main():
     abalone_data, cancer_data, fire_data, glass_data, machine_data, soybean_data = process_all('carlthedog3', True)
