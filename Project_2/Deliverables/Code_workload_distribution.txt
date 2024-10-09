@@ -1,0 +1,4 @@
+Code workload distribution:
+We worked on the code together, with Finn covering discretization, save, and add_noise() in the dataset class while Carlos handled imputation, the fix_data() method and removing an attribute.
+In the algorithm Carlos developed the train_predict() method, and get_train_test() method  while Finn developed the predict method and calculate loss.
+in additional functions Carlos developed creat_comparison_table and create_stats_df while Finn developed make_plots
