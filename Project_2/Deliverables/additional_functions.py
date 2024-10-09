@@ -116,7 +116,7 @@ def load_arrays_from_csv(filename: str):
         raise ValueError("Expected to extract 18 arrays, but found a different number.")
     return arrays
 
-def make_plots_2(arrays: list, classification_names: list, regression_names: list, figure_size: tuple, rotation_val: int):
+def make_plots_2(arrays: list, classification_names: list, regression_names: list, figure_size: tuple, rotation_val: int, save_path: str):
     '''
     This function creates boxplots for the 2 performance metrics for both classification and regression.
     This function will output 4 plots, 0/1 loss for classification, F1 score for classification,
@@ -166,6 +166,7 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     plt.title('0/1 Loss Scores Across Classification Datasets (Higher is Better)')
     plt.legend()
     plt.tight_layout()
+    plt.savefig(f"{save_path}01_loss.png")
     plt.show()
 
     # Plotting F1 Score
@@ -183,6 +184,7 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     plt.title('Average F1 Scores Across Classification Datasets (Higher is Better)')
     plt.legend()
     plt.tight_layout()
+    plt.savefig(f"{save_path}f1_score.png")
     plt.show()
 
     # Plotting MSE
@@ -200,6 +202,7 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     plt.title('Mean Squared Error Across Regression Datasets (Lower is Better)')
     plt.legend()
     plt.tight_layout()
+    plt.savefig(f"{save_path}mse.png")
     plt.show()
 
     # Plotting MAE
@@ -217,4 +220,5 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     plt.title('Mean Absolute Error Across Regression Datasets (Lower is Better)')
     plt.legend()
     plt.tight_layout()
+    plt.savefig(f"{save_path}mae.png")
     plt.show()
