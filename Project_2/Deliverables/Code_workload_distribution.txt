@@ -1,4 +1,2 @@
 Code workload distribution:
-We worked on the code together, with Finn covering discretization, save, and add_noise() in the dataset class while Carlos handled imputation, the fix_data() method and removing an attribute.
-In the algorithm Carlos developed the train_predict() method, and get_train_test() method  while Finn developed the predict method and calculate loss.
-in additional functions Carlos developed creat_comparison_table and create_stats_df while Finn developed make_plots
+We worked on the code together, with Finn covering shuffle(), split(), fold() and sort() in the dataset class. Carlos developed continuize(), impute(), shuffle_splits(), save() and extract(). Within the kNN class, Finn developed euclidean_distance(), calculate_loss(), and regress() while Carlos developed tune(), get_neighbors(), plot_loss(), and classify(). Carlos developed the ENN class and Finn developed the kmeans class.
