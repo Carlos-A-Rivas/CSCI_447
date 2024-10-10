@@ -1,0 +1,4 @@
+Code workload distribution:
+We worked on the code together, with Finn covering shuffle(), split(), fold() and sort() in the dataset class. Carlos developed continuize(), impute(), shuffle_splits(), save() and extract().
+Within the kNN class, Finn developed euclidean_distance(), calculate_loss(), and regress() while Carlos developed tune(), get_neighbors(), plot_loss(), and classify().
+Carlos developed the ENN class and Finn developed the kmeans class.
