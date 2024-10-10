@@ -4,6 +4,8 @@ import numpy as np
 from tqdm import tqdm
 from collections import Counter
 
+# All files were developed collaboratively
+
 class kmeans:
     '''
     The all-inclusive class for running the Kmeans algorithm

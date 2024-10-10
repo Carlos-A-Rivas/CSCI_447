@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from dataset import dataset
 
+# All files were developed collaboratively
+
 def process_all(user: str, shuffle_split: bool):
     # instantiates the datasets
     abalone_data = dataset('/home/'+user+'/CSCI_447/Project_2/Datasets/abalone.data', False)

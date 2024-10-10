@@ -4,6 +4,8 @@ import numpy as np
 from tqdm import tqdm
 from collections import Counter
 
+# All files were developed collaboratively
+
 class enn:
     '''
     The all-inclusive class for running the ENN algorithm

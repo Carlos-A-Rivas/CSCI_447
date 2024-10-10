@@ -3,6 +3,8 @@ import numpy as np
 import random
 import csv
 
+# All files were developed collaboratively
+
 class dataset:
     '''
     The dataset class handles initial data loading along with all pre-processing tasks

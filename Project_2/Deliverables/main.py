@@ -6,6 +6,8 @@ from additional_functions import save_arrays_to_csv
 from additional_functions import load_arrays_from_csv
 from additional_functions import make_plots_2
 
+# All files were developed collaboratively
+
 '''
 THE CODE FOR THE VIDEO DEMO WAS MODIFIED TO ADD ADDITIONAL PRINT STATEMENTS. THAT CODE CAN BE FOUND IN THE VIDEO DEMO JUPYTER NOTEBOOK FILE
 '''
