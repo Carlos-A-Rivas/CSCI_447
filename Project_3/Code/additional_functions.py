@@ -16,7 +16,7 @@ def process_all(user: str, shuffle_split: bool):
 
     # abalone processing
     abalone_data.oh_encode()
-    abalone_data.normalize()
+    abalone_data.normalize("regression")
     abalone_data.shuffle()
     abalone_data.sort('regression')
     abalone_data.split()
@@ -24,6 +24,7 @@ def process_all(user: str, shuffle_split: bool):
 
     # cancer processing
     cancer_data.oh_encode()
+    cancer_data.normalize("classification")
     cancer_data.remove_attribute()
     cancer_data.impute()
     cancer_data.shuffle()
@@ -33,7 +34,7 @@ def process_all(user: str, shuffle_split: bool):
 
     # fire processing
     fire_data.oh_encode()
-    fire_data.normalize()
+    fire_data.normalize("regression")
     fire_data.shuffle()
     fire_data.sort('regression')
     fire_data.split()
@@ -42,6 +43,7 @@ def process_all(user: str, shuffle_split: bool):
     # glass processing
     glass_data.oh_encode()
     glass_data.remove_attribute()
+    glass_data.normalize("classification")
     glass_data.shuffle()
     glass_data.sort('classification')
     glass_data.split()
@@ -49,7 +51,7 @@ def process_all(user: str, shuffle_split: bool):
 
     # machine processing
     machine_data.oh_encode()
-    machine_data.normalize()
+    machine_data.normalize("regression")
     machine_data.shuffle()
     machine_data.sort('regression')
     machine_data.split()
@@ -57,6 +59,7 @@ def process_all(user: str, shuffle_split: bool):
 
     # soybean processing
     soybean_data.oh_encode()
+    soybean_data.normalize("classification")
     soybean_data.shuffle()
     soybean_data.sort('classification')
     soybean_data.split()
