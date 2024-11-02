@@ -135,11 +135,13 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     classification_arrays = arrays[:9]
     regression_arrays = arrays[9:]
     # Extract metrics for classification
-    loss_data = [classification_arrays[i][:, 0] for i in range(len(classification_arrays))]
-    f1_data = [classification_arrays[i][:, 1] for i in range(len(classification_arrays))]
+    #loss_data = [classification_arrays[i][:, 0] for i in range(len(classification_arrays))]
+    #f1_data = [classification_arrays[i][:, 1] for i in range(len(classification_arrays))]
+    loss_data = list(classification_arrays)
     # Extract metrics for regression
-    mse_data = [regression_arrays[i][:, 0] for i in range(len(regression_arrays))]
-    mae_data = [regression_arrays[i][:, 1] for i in range(len(regression_arrays))]
+    #mse_data = [regression_arrays[i][:, 0] for i in range(len(regression_arrays))]
+    #mae_data = [regression_arrays[i][:, 1] for i in range(len(regression_arrays))]
+    mse_data = list(regression_arrays)
     # Positions for boxplots - 3 models per dataset
     num_models = 3
     def calculate_positions(num_datasets, num_models, spacing, width):
@@ -155,7 +157,7 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     positions_regression = calculate_positions(len(regression_names), num_models, spacing, width)
     # Choose colors for each model
     colors = ['lightblue', 'lightgreen', 'lightcoral']
-    model_names = ['KNN', 'ENN', 'K-Means']
+    model_names = ['0 Hidden Layers', '1 Hidden Layer', '2 Hidden Layers']
 
     # Plotting 0/1 Loss
     plt.figure(figsize=figure_size)
@@ -175,6 +177,7 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     plt.savefig(f"{save_path}01_loss.png")
     plt.show()
 
+    '''
     # Plotting F1 Score
     plt.figure(figsize=figure_size)
     for i in range(num_models):
@@ -192,6 +195,7 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     plt.tight_layout()
     plt.savefig(f"{save_path}f1_score.png")
     plt.show()
+    '''
 
     # Plotting MSE
     plt.figure(figsize=figure_size)
@@ -211,6 +215,7 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     plt.savefig(f"{save_path}mse.png")
     plt.show()
 
+    '''
     # Plotting MAE
     plt.figure(figsize=figure_size)
     for i in range(num_models):
@@ -228,3 +233,4 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     plt.tight_layout()
     plt.savefig(f"{save_path}mae.png")
     plt.show()
+    '''
