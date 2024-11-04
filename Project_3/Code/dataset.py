@@ -44,7 +44,10 @@ class dataset:
         # Apply min-max normalization to features
         features_min = features.min(axis=0)
         features_max = features.max(axis=0)
-        normalized_features = (features - features_min) / (features_max - features_min)
+        
+        denominator = (features_max - features_min)
+        denominator[denominator == 0]+= 1e10
+        normalized_features = (features - features_min) / denominator
 
         if prediction_type == "regression":
             normalized_labels = (labels - labels.min()) / (labels.max() - labels.min())
