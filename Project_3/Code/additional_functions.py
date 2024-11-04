@@ -60,7 +60,7 @@ def process_all(user: str, shuffle_split: bool):
     # soybean processing
     soybean_data.oh_encode()
     soybean_data.normalize("classification")
-    soybean_data.shuffle()
+    #soybean_data.shuffle()
     soybean_data.sort('classification')
     soybean_data.split()
     soybean_data.fold()
