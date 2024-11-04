@@ -60,7 +60,7 @@ def process_all(user: str, shuffle_split: bool):
     # soybean processing
     soybean_data.oh_encode()
     soybean_data.normalize("classification")
-    #soybean_data.shuffle()
+    soybean_data.shuffle()
     soybean_data.sort('classification')
     soybean_data.split()
     soybean_data.fold()
@@ -95,31 +95,37 @@ def save_arrays_to_csv(arrays: list, filename: str):
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
         for idx, array in enumerate(arrays):
+            # Write the array identifier
             writer.writerow([f"Array {idx+1}"])
-            writer.writerows(array)
+            # Write each value in the array as a row
+            for value in array:
+                writer.writerow([value])  # Each value needs to be in a list to be written as a row
+            # Add an empty row after each array for readability
             writer.writerow([])
 
-def load_arrays_from_csv(filename: str):
+def load_arrays_from_csv(filename):
     """
-    Load 18 numpy arrays from a CSV file. Used for loading performance metrics.
+    Load arrays from a CSV file and return them in the same format they were saved.
     """
     arrays = []
     with open(filename, mode='r') as file:
         reader = csv.reader(file)
         current_array = []
         for row in reader:
-            if len(row) == 0:
-                continue
-            elif "Array" in row[0]:
-                if current_array:
-                    arrays.append(np.array(current_array, dtype=float))
+            if len(row) == 0:  # Empty row indicates the end of an array
+                if current_array:  # If current_array has values, append it to arrays
+                    arrays.append(current_array)
                     current_array = []
+            elif row[0].startswith("Array"):  # Array identifier, skip it
+                continue
             else:
-                current_array.append([float(val) for val in row])
+                # Add the scalar value from the row to current_array
+                current_array.append(float(row[0]))
+                
+        # Append the last array if the file doesn't end with an empty row
         if current_array:
-            arrays.append(np.array(current_array, dtype=float))
-    if len(arrays) != 18:
-        raise ValueError("Expected to extract 18 arrays, but found a different number.")
+            arrays.append(current_array)
+    
     return arrays
 
 def make_plots_2(arrays: list, classification_names: list, regression_names: list, figure_size: tuple, rotation_val: int, save_path: str):
