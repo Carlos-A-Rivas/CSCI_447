@@ -16,7 +16,7 @@ def process_all(user: str, shuffle_split: bool):
 
     # abalone processing
     abalone_data.oh_encode()
-    abalone_data.normalize()
+    abalone_data.normalize("regression")
     abalone_data.shuffle()
     abalone_data.sort('regression')
     abalone_data.split()
@@ -24,6 +24,7 @@ def process_all(user: str, shuffle_split: bool):
 
     # cancer processing
     cancer_data.oh_encode()
+    cancer_data.normalize("classification")
     cancer_data.remove_attribute()
     cancer_data.impute()
     cancer_data.shuffle()
@@ -33,7 +34,7 @@ def process_all(user: str, shuffle_split: bool):
 
     # fire processing
     fire_data.oh_encode()
-    fire_data.normalize()
+    fire_data.normalize("regression")
     fire_data.shuffle()
     fire_data.sort('regression')
     fire_data.split()
@@ -42,6 +43,7 @@ def process_all(user: str, shuffle_split: bool):
     # glass processing
     glass_data.oh_encode()
     glass_data.remove_attribute()
+    glass_data.normalize("classification")
     glass_data.shuffle()
     glass_data.sort('classification')
     glass_data.split()
@@ -49,7 +51,7 @@ def process_all(user: str, shuffle_split: bool):
 
     # machine processing
     machine_data.oh_encode()
-    machine_data.normalize()
+    machine_data.normalize("regression")
     machine_data.shuffle()
     machine_data.sort('regression')
     machine_data.split()
@@ -57,6 +59,7 @@ def process_all(user: str, shuffle_split: bool):
 
     # soybean processing
     soybean_data.oh_encode()
+    soybean_data.normalize("classification")
     soybean_data.shuffle()
     soybean_data.sort('classification')
     soybean_data.split()
@@ -92,31 +95,37 @@ def save_arrays_to_csv(arrays: list, filename: str):
     with open(filename, mode='w', newline='') as file:
         writer = csv.writer(file)
         for idx, array in enumerate(arrays):
+            # Write the array identifier
             writer.writerow([f"Array {idx+1}"])
-            writer.writerows(array)
+            # Write each value in the array as a row
+            for value in array:
+                writer.writerow([value])  # Each value needs to be in a list to be written as a row
+            # Add an empty row after each array for readability
             writer.writerow([])
 
-def load_arrays_from_csv(filename: str):
+def load_arrays_from_csv(filename):
     """
-    Load 18 numpy arrays from a CSV file. Used for loading performance metrics.
+    Load arrays from a CSV file and return them in the same format they were saved.
     """
     arrays = []
     with open(filename, mode='r') as file:
         reader = csv.reader(file)
         current_array = []
         for row in reader:
-            if len(row) == 0:
-                continue
-            elif "Array" in row[0]:
-                if current_array:
-                    arrays.append(np.array(current_array, dtype=float))
+            if len(row) == 0:  # Empty row indicates the end of an array
+                if current_array:  # If current_array has values, append it to arrays
+                    arrays.append(current_array)
                     current_array = []
+            elif row[0].startswith("Array"):  # Array identifier, skip it
+                continue
             else:
-                current_array.append([float(val) for val in row])
+                # Add the scalar value from the row to current_array
+                current_array.append(float(row[0]))
+                
+        # Append the last array if the file doesn't end with an empty row
         if current_array:
-            arrays.append(np.array(current_array, dtype=float))
-    if len(arrays) != 18:
-        raise ValueError("Expected to extract 18 arrays, but found a different number.")
+            arrays.append(current_array)
+    
     return arrays
 
 def make_plots_2(arrays: list, classification_names: list, regression_names: list, figure_size: tuple, rotation_val: int, save_path: str):
@@ -132,11 +141,13 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     classification_arrays = arrays[:9]
     regression_arrays = arrays[9:]
     # Extract metrics for classification
-    loss_data = [classification_arrays[i][:, 0] for i in range(len(classification_arrays))]
-    f1_data = [classification_arrays[i][:, 1] for i in range(len(classification_arrays))]
+    #loss_data = [classification_arrays[i][:, 0] for i in range(len(classification_arrays))]
+    #f1_data = [classification_arrays[i][:, 1] for i in range(len(classification_arrays))]
+    loss_data = list(classification_arrays)
     # Extract metrics for regression
-    mse_data = [regression_arrays[i][:, 0] for i in range(len(regression_arrays))]
-    mae_data = [regression_arrays[i][:, 1] for i in range(len(regression_arrays))]
+    #mse_data = [regression_arrays[i][:, 0] for i in range(len(regression_arrays))]
+    #mae_data = [regression_arrays[i][:, 1] for i in range(len(regression_arrays))]
+    mse_data = list(regression_arrays)
     # Positions for boxplots - 3 models per dataset
     num_models = 3
     def calculate_positions(num_datasets, num_models, spacing, width):
@@ -152,7 +163,7 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     positions_regression = calculate_positions(len(regression_names), num_models, spacing, width)
     # Choose colors for each model
     colors = ['lightblue', 'lightgreen', 'lightcoral']
-    model_names = ['KNN', 'ENN', 'K-Means']
+    model_names = ['0 Hidden Layers', '1 Hidden Layer', '2 Hidden Layers']
 
     # Plotting 0/1 Loss
     plt.figure(figsize=figure_size)
@@ -172,6 +183,7 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     plt.savefig(f"{save_path}01_loss.png")
     plt.show()
 
+    '''
     # Plotting F1 Score
     plt.figure(figsize=figure_size)
     for i in range(num_models):
@@ -189,6 +201,7 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     plt.tight_layout()
     plt.savefig(f"{save_path}f1_score.png")
     plt.show()
+    '''
 
     # Plotting MSE
     plt.figure(figsize=figure_size)
@@ -208,6 +221,7 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     plt.savefig(f"{save_path}mse.png")
     plt.show()
 
+    '''
     # Plotting MAE
     plt.figure(figsize=figure_size)
     for i in range(num_models):
@@ -225,3 +239,4 @@ def make_plots_2(arrays: list, classification_names: list, regression_names: lis
     plt.tight_layout()
     plt.savefig(f"{save_path}mae.png")
     plt.show()
+    '''

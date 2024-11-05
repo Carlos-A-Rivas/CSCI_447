@@ -32,13 +32,52 @@ class dataset:
                 lines[i] = lines[i].split(',')  
             # Make the list into a numpy array
             self.intake_data = np.array(lines)
-    def normalize(self):
+
+    def normalize(self, prediction_type: str):
         '''
         performs mim-max normalization on the last column of the intake data (example value). This will only be used for regression data.
         '''
+        # Separate features and labels
+        features = self.intake_data[:, :-1]  # All columns except the last one (features)
+        labels = self.intake_data[:, -1]     # Last column (labels)
+
+        # Apply min-max normalization to features
+        features_min = features.min(axis=0)
+        features_max = features.max(axis=0)
+        
+        denominator = (features_max - features_min)
+        denominator[denominator == 0]+= 1e10
+        normalized_features = (features - features_min) / denominator
+
+        if prediction_type == "regression":
+            normalized_labels = (labels - labels.min()) / (labels.max() - labels.min())
+        else:
+            # Create a mapping from the original labels to new labels starting from 0
+            unique_labels = np.unique(labels)
+            label_mapping = {old_label: new_label for new_label, old_label in enumerate(unique_labels)}
+
+            # Map the labels to new values starting from 0
+            new_labels = np.array([label_mapping[label] for label in labels])
+
+            normalized_labels = new_labels
+
+        # Combine normalized features with labels
+        # if this does not work make self.intake_data[:,:-1] and self.intake_data[:,-1] equal the normalized labels and features matrices
+        normalized_data = np.hstack((normalized_features, normalized_labels.reshape(-1, 1)))
+        self.intake_data = normalized_data
+
+        '''
+        if prediction_type == "classification":
+            # normalize features, not labels
+            values = self.intake_data[:,-1].astype(float)
+            normalized_values = (values - values.min()) / (values.max() - values.min())
+            self.intake_data[:, -1] = normalized_values
+        else:
+            # normalize entire matrix
         values = self.intake_data[:,-1].astype(float)
         normalized_values = (values - values.min()) / (values.max() - values.min())
         self.intake_data[:, -1] = normalized_values
+        '''
     def oh_encode(self):
         '''
         This method goes through each item in the data array, and if the item is not a number, it is replaced with a number (continuization).
