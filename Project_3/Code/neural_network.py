@@ -39,13 +39,13 @@ class neural_net:
 
     def init_weights_biases_momentum(self):
         '''
-        Initializes weights based on the network shape list
+        Initializes weights randomly based on the network shape list
         '''
         self.biases = [np.random.randn(next_size, 1) for next_size in self.network_shape[1:]]
         self.weights = [np.random.randn(next_size, cur_size) for cur_size, next_size in zip(self.network_shape[:-1], self.network_shape[1:])]
         self.bias_velocity = [np.zeros(bias.shape) for bias in self.biases]
         self.weight_velocity = [np.zeros(weight.shape) for weight in self.weights]
-        #print(self.biases)
+        
 
 
     def for_prop(self, input: np):
@@ -54,44 +54,44 @@ class neural_net:
         '''
         output = input
         for bias, weight in zip(self.biases[:-1], self.weights[:-1]):
-            output = self.sigmoid(np.dot(weight, output) + bias)
-        # Not sure right now if output will be correct for regression, but life goes on.
-        # The following lines choose the output activation function based on prediction type
+            output = self.sigmoid(np.dot(weight, output) + bias)        #for each weight calculate the output of the activation function
+                
         bias, weight = self.biases[-1], self.weights[-1]
-        # MIGHT NEED TO RESHAPE THE DOT PRODUCT ON THE LINE BELOW
-        output = (np.dot(weight, output) + bias)
+        #For regression, use a linear combination for output activation
+        #For classification, use a softmax output activation
+        output = (np.dot(weight, output) + bias)    
         if self.prediction_type == "classification":
             output = self.softmax(output)
         return output
     
     def get_training_data(self, i: int):
         '''
-        method needs to take the set of fold i-(i-1) and and compile those into its own array.
-        Then format the data as follows: each example = (attributes, label)
-        i is used to indicate which training set you want returned
+        method needs to take in training data and compile 9 of the 10 folds (not fold I) into an array
+        we then want to format the data as follows: each example = (attributes, label)
+        I is used to indicate which fold is the hold out fold
         '''
-        desired_data = np.concatenate([self.validate_set[j] for j in range(10) if j != i])
-        training_data = [(example[:-1], example[-1]) for example in desired_data]
+        desired_data = np.concatenate([self.validate_set[j] for j in range(10) if j != i])  #Get all folds other than fold I and compile into its own array
+        training_data = [(example[:-1], example[-1]) for example in desired_data]   #Format properly
         return training_data
     
     def get_testing_data(self, i: int):
         '''
-        method needs to take the set of fold i-(i-1) and and compile those into its own array.
+        method needs to take in training data and compile 1 of the 10 folds (fold I) into an array
         Then format the data as follows: each example = (attributes, label)
         i is used to indicate which training set you want returned
         '''
-        desired_data = self.validate_set[i]
-        testing_data = [(example[:-1], example[-1]) for example in desired_data]
+        desired_data = self.validate_set[i]         #Get the test set
+        testing_data = [(example[:-1], example[-1]) for example in desired_data] #Format properly
         return testing_data
     
     def get_tuning_data(self):
         '''
-        method needs to take the set of fold i-(i-1) and and compile those into its own array.
+        method needs to take in the tuning set and properly format it
         Then format the data as follows: each example = (attributes, label)
         i is used to indicate which training set you want returned
         '''
-        desired_data = self.tune_set
-        tuning_data = [(example[:-1], example[-1]) for example in desired_data]
+        desired_data = self.tune_set  #Get the tuning set
+        tuning_data = [(example[:-1], example[-1]) for example in desired_data] #Format properly
         return tuning_data
 
     def grad_desc(self, training_data, epochs, momentum, learning_rate, batch_size):
@@ -99,24 +99,29 @@ class neural_net:
         Takes in a traing set from get_training_data. The format is a list of tuples, where each tuple
         represents an example. Within each tuple the first value is the feature vector and the second
         value is the label.
+
+        We want to complete mini batch gradient descent
+
+        This method effectively trains the model
         '''
         example_count = len(training_data)
         for epoch in range(epochs):
             random.shuffle(training_data)
-            mini_batches = [training_data[k:k+batch_size] for k in range(0, example_count, batch_size)]
+            mini_batches = [training_data[k:k+batch_size] for k in range(0, example_count, batch_size)]         #Form the mini batches based on the batch size hyperparameters
             for mini_batch in mini_batches:
-                self.update_weights(mini_batch, momentum, learning_rate)
+                self.update_weights(mini_batch, momentum, learning_rate)                                        #for each mini batch, update the weights
 
     def update_weights(self, mini_batch, momentum, learning_rate):
         '''
-        NEEDS COMMENTING/PARSING
+        This method takes in a mini batch and the momentum and learning rate hyperparameters. It needs to compute the gradient
+        for the biases and the weights, use the gradients to calculate the velocities, and use the velocities to update the weights
+        and biases.
         '''
-        bias_gradient = [np.zeros(bias.shape) for bias in self.biases]
+        bias_gradient = [np.zeros(bias.shape) for bias in self.biases]          #initialize an empty array to store the gradients
         weight_gradient = [np.zeros(weight.shape) for weight in self.weights]
 
         # Compute gradients for the mini-batch
-        for feature, label in mini_batch:
-            #print(type(label))
+        for feature, label in mini_batch:           
             if not np.isnan(label):
                 delta_bias_gradient, delta_weight_gradient = self.epoch(feature, label)
                 bias_gradient = [gradient + delta for gradient, delta in zip(bias_gradient, delta_bias_gradient)]
@@ -132,71 +137,65 @@ class neural_net:
 
     def epoch(self, feature, label):
         '''
-        NEEDS COMMENTING/PARSING
+        This method should complete one full cycle of forward propogation, loss calculation, calculate gradients based on loss
+        and back propogation to update weights. 
         '''
-        #print(f"\n\nLABEL: {label}\n\n")
+        
         bias_gradient = [np.zeros(bias.shape) for bias in self.biases]
         weight_gradient = [np.zeros(weight.shape) for weight in self.weights]
-        # feedforward
+        #begin the feedforward process
         activation = feature
         activations = [feature] # list to store all the activations, layer by layer
         weighted_inputs = [] # list to store all the z vectors, layer by layer
-        #print(f"Biases: {self.biases[-1]}")
-        #print(f"Weights: {self.weights[-1]}")
         for bias, weight in zip(self.biases[:-1], self.weights[:-1]):
-            #print(f"Activation:\n{activation.shape}\n\nWeight:\n{weight.shape}\n\nBias:\n{bias.shape}\n\n\n")
             weighted_input = np.dot(weight, activation.reshape(-1,1)) + bias
-            #print(f"Weighted Input:\n{weighted_input.shape}")
             activation = self.sigmoid(weighted_input)
             weighted_inputs.append(weighted_input)
             activations.append(activation)
         # The output layer uses different activation functions
         bias, weight = self.biases[-1], self.weights[-1]
-        #print(f"Activation:\n{activation}\n\nWeight:\n{weight.shape}\n\nBias:\n{bias.shape}\n\n\n")
-        #print(f"Dot Product Shape:\n{np.dot(weight, activation).reshape(-1,1)}\n\n")
         weighted_input = np.dot(weight, activation.reshape(-1,1)) + bias
         #weighted_input = np.dot(weight, activation)
-        #print(f"Weighted Input (Should be two scalars):\n{(weighted_input.shape)}")
         activation = weighted_input
         if self.prediction_type == "classification":
             activation = self.softmax(weighted_input)
         weighted_inputs.append(weighted_input)
         activations.append(activation)
-        #print(f"Activations:\n{activations}\n\nWeighted Inputs:\n{weighted_inputs}")
+
     
 
 
-        # backward pass
-        # NEED TO ONE-HOT ENCODE THE LABELS FOR CLASSIFICATION SETS TO MAKE THE DELTA LINE WORK
-        # PROLLY WON'T NEED LOSS PRIME METHOD
+        # begin the backpropogation process
+       
         if self.prediction_type == "classification":
             one_hot_label = [0] * self.class_count
             one_hot_label[int(label)] = 1
             one_hot_label = np.array(one_hot_label).reshape(-1, 1)
         else:
-            one_hot_label = label
-        #print(f"Activations[-1]:\n{activations[-1]}\nOne-Hot Label:\n{one_hot_label}")
-        delta = (activations[-1] - one_hot_label)# * self.softmax(weighted_inputs[-1])
+            one_hot_label = label       
+        delta = (activations[-1] - one_hot_label) # * self.softmax(weighted_inputs[-1])
         bias_gradient[-1] = delta
-        #print(f"Delta:\n{delta}\n\nActivations:\n{activations[-2].reshape(1,-1)}\n\n")
-        weight_gradient[-1] = np.dot(delta, activations[-2].reshape(1,-1))# # CHECK THIS LINE FOR COMPREHENSION
+        
+        weight_gradient[-1] = np.dot(delta, activations[-2].reshape(1,-1))
 
         for layer_idx in range(2, len(self.network_shape)):
             weighted_input = weighted_inputs[-layer_idx]
             activation_prime = self.sigmoid_prime(weighted_input)
             delta = np.dot(self.weights[-layer_idx+1].transpose(), delta) * activation_prime
-            # add logic to convert scalar if delta is 1x1
+            
             if delta.shape == (1,1):
                 bias_gradient[-layer_idx] = delta.reshape(-1)
                 weight_gradient[-layer_idx] = (delta.reshape(-1) * activations[-layer_idx-1].transpose())
             else:
                 bias_gradient[-layer_idx] = delta
-                weight_gradient[-layer_idx] = np.dot(delta, activations[-layer_idx-1].reshape(1,-1))
-        #print("GOT TO THE END")
+                weight_gradient[-layer_idx] = np.dot(delta, activations[-layer_idx-1].reshape(1,-1))       
         return (bias_gradient, weight_gradient)
 
     def tune(self):
-        # CONSIDER REMOVING THE TQDM ON EPOCHS
+        '''
+        The method should test the hyperparameter values below and return the combination of hyperparameters
+        that result in the best performance for the algorithm.
+        '''
         hidden_node_vals = [1, 3, 5, 7, 9]
         epoch_vals = [10, 50, 100, 200, 500]
         momentum_vals = [0.5, 0.7, 0.9, 0.95, 0.99]
@@ -210,7 +209,11 @@ class neural_net:
         batch_size_scores = []
 
         # Hidden node Count Tuning
-        if (self.hidden_layer_count > 0):
+        '''
+        If there is only one hidden layer try all five possible values and return the values that leads to best performance
+        If there are two hiddens layers complete a grid search with the five possible values and return the combination that performs the best
+        '''
+        if (self.hidden_layer_count > 0):       #skip if there are no hidden layers
             hidden_node_combinations = list(itertools.product(hidden_node_vals, repeat=self.hidden_layer_count))
             for combination in tqdm(hidden_node_combinations, desc="Tuning Hidden Node Count", leave=False):
                 self.network_shape = [self.input_size] + (list(combination)) + ([self.class_count] if (self.prediction_type == "classification") else [1])
@@ -224,6 +227,7 @@ class neural_net:
             print(f"Tuned Network Shape: {self.network_shape}")
 
         # Epoch tuning
+        #Test all five epoch values above and return the value that performs the best
         for epochs in tqdm(epoch_vals, desc="Tuning Epochs", leave=False):
             epoch_score = self.train_test(tuning_flag=True, epochs=epochs, momentum=self.momentum, learning_rate=self.learning_rate, batch_size=self.batch_size)
             epoch_scores.append(np.mean(epoch_score))
@@ -235,6 +239,7 @@ class neural_net:
         print(f"Tuned Epoch Value: {self.epochs}")
 
         # Momentum Tuning
+        #Try all five momentum values and return the value that performs the best
         for momentum in tqdm(momentum_vals, desc="Tuning Momentum", leave=False):
             momentum_score = self.train_test(tuning_flag=True, epochs=self.epochs, momentum=momentum, learning_rate=self.learning_rate, batch_size=self.batch_size)
             momentum_scores.append(np.mean(momentum_score))
@@ -246,6 +251,7 @@ class neural_net:
         print(f"Tuned Momentum Value: {self.momentum}")
 
         # Learning rate tuning
+        #Try all five learning rate values and return the value that performs the best
         for learning_rate in tqdm(learning_rate_vals, desc="Tuning Learning Rate", leave=False):
             learning_rate_score = self.train_test(tuning_flag=True, epochs=self.epochs, momentum=self.momentum, learning_rate=learning_rate, batch_size=self.batch_size)
             learning_rate_scores.append(np.mean(learning_rate_score))
@@ -257,6 +263,7 @@ class neural_net:
         print(f"Tuned Learning Rate: {self.learning_rate}")
 
         # Batch size tuning
+        #Try all five momentum values and return the value that performs the best
         for batch_size in tqdm(batch_size_vals, desc="Tuning Batch Size", leave=False):
             batch_size_score = self.train_test(tuning_flag=True, epochs=self.epochs, momentum=self.momentum, learning_rate=self.learning_rate, batch_size=batch_size)
             batch_size_scores.append(np.mean(batch_size_score))
@@ -270,10 +277,14 @@ class neural_net:
         return [self.network_shape, self.epochs, self.momentum, self.learning_rate, self.batch_size]
     
     def train_test(self, tuning_flag: bool, epochs=100, momentum=.9, learning_rate=.01, batch_size=10):
+        '''
+        This method should take in the hyperparameters determined during tuning. It should use those hyperparameter
+        values to train and test the model and return the calculated loss scores
+        '''
         scores = []
         if tuning_flag:
             for i in range(10):
-                self.init_weights_biases_momentum()
+                self.init_weights_biases_momentum()     
                 self.grad_desc(self.get_training_data(i), epochs, momentum, learning_rate, batch_size)
                 score = self.loss(self.get_tuning_data())
                 scores.append(score)
@@ -286,6 +297,11 @@ class neural_net:
         return np.array(scores)
     
     def loss(self, test_data):
+        '''
+        This method calculates the loss based on our evaluation metrics
+        For classification: 0/1 loss
+        For regression: Mean squared error
+        '''
         if self.prediction_type == "classification":
             results = [(np.argmax(self.for_prop(example)), label) for (example, label) in test_data if not np.isnan(label)]
             correct_results = sum(int(example == label) for (example, label) in results)
@@ -300,41 +316,18 @@ class neural_net:
             # Calculate MSE
             mse = np.mean((predictions - labels) ** 2)
             return mse
-            
 
-            '''
-            results = [(self.for_prop(x), y) for (x, y) in test_data if not np.isnan(y)]
-            predictions = np.array([prediction.flatten() for (prediction, label) in results], dtype=float).reshape(-1)
-            labels = np.array([label for (prediction, label) in results], dtype=float).reshape(-1)
-            mse = np.mean((predictions - labels) ** 2)
-            return mse
-            '''
         
-    '''
-    def evaluate(self, test_data):
-        """Return the accuracy of the network on the test data, excluding any NaN labels."""
-        test_results = [(np.argmax(self.feedforward(x)), y) for (x, y) in test_data if not np.isnan(y) and len(x) == 2]
-        correct_predictions = sum(int(x == y) for (x, y) in test_results)
-        total_examples = len(test_results)
-        return correct_predictions / total_examples if total_examples > 0 else 0
-    '''
-
-    '''
-    def loss_prime(self):
-        return
-    '''
-    def sigmoid(self, input: np):
+ 
+   
+    def sigmoid(self, input: np):       #used the logistic function as our activation
         return 1.0/(1.0+np.exp(-input))
-    def sigmoid_prime(self, input: np):
+    def sigmoid_prime(self, input: np): #derivative of the logistic function
         return self.sigmoid(input)*(1-self.sigmoid(input))
-    def softmax(self, input):
+    def softmax(self, input):   #softmax for output activation during classification
         exp = np.exp(input - np.max(input))
         return exp / np.sum(exp)
-    '''
-    # Since loss output is in a slightly different format for neural nets, we might need an final loss method to output final performance
-    def final_loss(self):
-        return
-    '''
+    
     # THIS PROLLY NEEDS EDITING
     def plot_loss(self, metrics: list, parameter: str, increment):
         '''
