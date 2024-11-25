@@ -6,8 +6,7 @@ import itertools
 from dataset import dataset
 
 class neural_net:
-    def __init__(self, data: dataset, prediction_type_flag: str, hidden_layer_count=0, network_shape=[], hidden_node_count=1, epochs=100, momentum=.9, learning_rate=.01, batch_size=10, suppress_plots=True):
-        self.suppress_plots = suppress_plots
+    def __init__(self, data: dataset, prediction_type_flag: str, hidden_layer_count=0, network_shape=[], hidden_node_count=1, epochs=100, momentum=.9, learning_rate=.01, batch_size=10):
         self.epochs = epochs
         self.momentum = momentum
         self.learning_rate = learning_rate
