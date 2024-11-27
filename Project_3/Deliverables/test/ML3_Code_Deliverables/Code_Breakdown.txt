@@ -1,0 +1,3 @@
+Code workload distribution:
+We worked on the code together, with Finn covering shuffle(), split(), fold() and sort() in the dataset class. Carlos developed continuize(), impute(), shuffle_splits(), save() and extract().
+Within the Neural Net class, Finn and Carlos worked together to develop the class with both team members providing equally.
