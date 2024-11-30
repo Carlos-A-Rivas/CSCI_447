@@ -7,12 +7,12 @@ from dataset import dataset
 
 def process_all(user: str, shuffle_split: bool):
     # instantiates the datasets
-    abalone_data = dataset('/home/'+user+'/CSCI_447/Project_2/Datasets/abalone.data', False)
-    cancer_data = dataset('/home/'+user+'/CSCI_447/Project_2/Datasets/breast-cancer-wisconsin.data', False)
-    fire_data = dataset('/home/'+user+'/CSCI_447/Project_2/Datasets/forestfires.data', False)
-    glass_data = dataset('/home/'+user+'/CSCI_447/Project_2/Datasets/glass.data', False)
-    machine_data = dataset('/home/'+user+'/CSCI_447/Project_2/Datasets/machine.data', False)
-    soybean_data = dataset('/home/'+user+'/CSCI_447/Project_2/Datasets/soybean-small.data', False)
+    abalone_data = dataset('/home/'+user+'/CSCI_447/Project_4/Datasets/abalone.data', False)
+    cancer_data = dataset('/home/'+user+'/CSCI_447/Project_4/Datasets/breast-cancer-wisconsin.data', False)
+    fire_data = dataset('/home/'+user+'/CSCI_447/Project_4/Datasets/forestfires.data', False)
+    glass_data = dataset('/home/'+user+'/CSCI_447/Project_4/Datasets/glass.data', False)
+    machine_data = dataset('/home/'+user+'/CSCI_447/Project_4/Datasets/machine.data', False)
+    soybean_data = dataset('/home/'+user+'/CSCI_447/Project_4/Datasets/soybean-small.data', False)
 
     # abalone processing
     abalone_data.oh_encode()
