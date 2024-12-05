@@ -4,10 +4,12 @@ import numpy as np
 from joblib import Parallel, delayed
 import tqdm as tqdm
 
-
-
+# All files were developed collaboratively
 class GA_nn(DE_nn):
     def __init__(self, data: dataset, prediction_type_flag: str, network_shape: list, population_size=50, epochs=100, selection_size=0.4, mutation_rate=0.05, crossover_rate=0.5):
+        '''
+        Initializes the hyperparameters, network architecture, etc. If tuning is not called, default hyperparameters are used
+        '''
         self.pop_size = population_size
         self.epochs = epochs
         self.select_size = selection_size
