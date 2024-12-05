@@ -5,9 +5,12 @@ import random
 from joblib import Parallel, delayed
 import tqdm as tqdm
 
-
+# All files were developed collaboratively
 class DE_nn(backprop_nn):
     def __init__(self, data: dataset, prediction_type_flag: str, network_shape: list, population_size=50, epochs=100, scaling_factor=0.7, crossover_rate=0.7):
+        '''
+        Initializes the hyperparameters, network architecture, etc. If tuning is not called, default hyperparameters are used
+        '''
         self.epochs = epochs
         self.pop_size = population_size
         self.f = scaling_factor
@@ -36,51 +39,52 @@ class DE_nn(backprop_nn):
             weights = [np.random.randn(next_size, cur_size) for cur_size, next_size in zip(self.network_shape[:-1], self.network_shape[1:])]
             self.population.append((weights,biases))
     def donor_vector(self, f):
+        '''
+        Creates a donor vector based on the equation V_i = X_a + F * (X_b - X_c),
+        where V_i is the donor vector, X_i is a model candidate, and F is the
+        scaling factor that controls the amplification of the difference between
+        two of the candidates.
+        '''
         # Step 1: Select 3 candidates
         candidates = random.sample(self.population,3)
-        # Step 2: For each candidate, mutate the weights and biases
+        # Step 2: For each candidate, mutate the weights and biases based on donor vector eq
         weights_1, biases_1 = candidates[0]
         weights_2, biases_2 = candidates[1]
         weights_3, biases_3 = candidates[2]
         new_weights = []
         new_biases = []
-
         for w1, w2, w3 in zip(weights_1, weights_2, weights_3):
             new_weight = w1 + f * (w2 - w3)
             new_weights.append(new_weight)
-
         # Apply the equation for each bias vector
         for b1, b2, b3 in zip(biases_1, biases_2, biases_3):
             new_bias = b1 + f * (b2 - b3)
             new_biases.append(new_bias)
 
-        # Return the donor vector (weights, biases)
         return (new_weights, new_biases)
     def trial_vector(self, target_candidate, f, cr):
+        '''
+        Trial vectors are binomial crossovers between an original candidate
+        model and a donor vector based on crossover probability.
+        '''
         # Unpack target candidate and donor vector
         target_weights, target_biases = target_candidate
         donor_vector = self.donor_vector(f)
         donor_weights, donor_biases = donor_vector
-
         # Initialize lists to store trial weights and biases
         trial_weights = []
         trial_biases = []
-
         # Apply crossover to weights
         for target_weight, donor_weight in zip(target_weights, donor_weights):
-            # Perform element-wise crossover
             mask = np.random.rand(*target_weight.shape) < cr
             trial_weight = np.where(mask, donor_weight, target_weight)
             trial_weights.append(trial_weight)
-
         # Apply crossover to biases
         for target_bias, donor_bias in zip(target_biases, donor_biases):
-            # Perform element-wise crossover
             mask = np.random.rand(*target_bias.shape) < cr
             trial_bias = np.where(mask, donor_bias, target_bias)
             trial_biases.append(trial_bias)
 
-        # Return the trial vector (weights, biases)
         return (trial_weights, trial_biases)
     def evaluate_fitness(self, test_data, target, trial):
         '''
@@ -148,7 +152,7 @@ class DE_nn(backprop_nn):
             return self.population[np.argmin(scores)]
     def evolve(self, test_data, epochs, f, cr):
         '''
-        This method evolves the models in the population
+        This method evolves the models in the population (network training)
         '''
         for i in range(epochs):
             new_population = []
@@ -164,9 +168,8 @@ class DE_nn(backprop_nn):
         values to train and test the model and return the calculated loss scores.
         '''
 
-        # Define a function that encapsulates the work for each iteration
+        # This function acts as what would occur during a single iteration so this process can be parrellized
         def train_single_model(i):
-            # Use self to access methods and attributes from the class
             if tuning_flag:
                 self.init_population(pop_size)
                 self.evolve(self.get_training_data(i), epochs, f, cr)
@@ -175,7 +178,7 @@ class DE_nn(backprop_nn):
                 self.evolve(self.get_training_data(i), self.epochs, self.f, self.cr)
             return self.loss(self.get_tuning_data() if tuning_flag else self.get_testing_data(i), self.model)
 
-        # Parallel execution using joblib
+        # Parallel execution
         scores = Parallel(n_jobs=12)(
             delayed(train_single_model)(i)
             for i in tqdm(range(10), desc="Evaluating Models", leave=False)
@@ -197,7 +200,6 @@ class DE_nn(backprop_nn):
 
         if tuning_pop_size:
             # Population Size Tuning
-            #Try all four pop size values and return the value that performs the best
             for pop_size in tqdm(pop_size_vals, desc="Tuning Population Size", leave=False):
                 pop_size_score = self.train_test(tuning_flag=True, pop_size=pop_size, epochs=self.epochs, f=self.f, cr=self.cr)
                 pop_size_scores.append(np.mean(pop_size_score))
@@ -210,7 +212,6 @@ class DE_nn(backprop_nn):
         
         if tuning_epochs:
             # Epoch Tuning
-            #Try all five epoch values and return the value that performs the best
             for epoch in tqdm(epoch_vals, desc="Tuning Epochs", leave=False):
                 epoch_score = self.train_test(tuning_flag=True, pop_size=self.pop_size, epochs=epoch, f=self.f, cr=self.cr)
                 epoch_scores.append(np.mean(epoch_score))
@@ -223,7 +224,6 @@ class DE_nn(backprop_nn):
 
         if tuning_f:
             # Scaling Factor Tuning
-            #Try all five epoch values and return the value that performs the best
             for f in tqdm(f_vals, desc="Tuning Scaling Factor", leave=False):
                 f_score = self.train_test(tuning_flag=True, pop_size=self.pop_size, epochs=self.epochs, f=f, cr=self.cr)
                 f_scores.append(np.mean(f_score))
@@ -236,7 +236,6 @@ class DE_nn(backprop_nn):
 
         if tuning_cr:
             # Crossover Rate Tuning
-            #Try all five epoch values and return the value that performs the best
             for cr in tqdm(cr_vals, desc="Tuning Crossover Rate", leave=False):
                 cr_score = self.train_test(tuning_flag=True, pop_size=self.pop_size, epochs=self.epochs, f=self.f, cr=cr)
                 cr_scores.append(np.mean(cr_score))

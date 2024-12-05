@@ -4,8 +4,12 @@ from tqdm import tqdm
 import itertools
 import random
 
+# All files were developed collaboratively
 class backprop_nn:
     def __init__(self, data: dataset, prediction_type_flag: str, hidden_layer_count=0, network_shape=[], hidden_node_count=1, epochs=100, momentum=.9, learning_rate=.01, batch_size=10):
+        '''
+        Initializes the hyperparameters, network architecture, etc. If tuning is not called, default hyperparameters are used
+        '''
         self.epochs = epochs
         self.momentum = momentum
         self.learning_rate = learning_rate
@@ -129,7 +133,6 @@ class backprop_nn:
         This method should complete one full cycle of forward propogation, loss calculation, calculate gradients based on loss
         and back propogation to update weights. 
         '''
-        
         bias_gradient = [np.zeros(bias.shape) for bias in self.biases]
         weight_gradient = [np.zeros(weight.shape) for weight in self.weights]
         #forprop
@@ -152,8 +155,6 @@ class backprop_nn:
         activations.append(activation)
 
     
-
-
         # backprop
        
         if self.prediction_type == "classification":
