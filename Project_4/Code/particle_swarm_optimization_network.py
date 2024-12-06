@@ -46,18 +46,15 @@ class PSO_nn:
             weights = [np.random.randn(next_size, cur_size) for cur_size, next_size in zip(self.network_shape[:-1], self.network_shape[1:])]
             particle = (weights, biases)
             self.population.append(particle)
-
             # Initialize velocities 
             vel_biases = [np.zeros_like(bias) for bias in biases]
             vel_weights = [np.zeros_like(weight) for weight in weights]
             velocity = (vel_weights, vel_biases)
             self.velocities.append(velocity)
-
             # Initialize personal bests
             self.personal_best_positions.append(particle)
             score = self.loss(self.get_training_data(i % 10), particle)
             self.personal_best_scores.append(score)
-
         # Initialize global best
         best_idx = np.argmin(self.personal_best_scores) if self.prediction_type != "classification" else np.argmax(self.personal_best_scores)
         self.global_best_position = self.personal_best_positions[best_idx]
