@@ -38,13 +38,10 @@ class GA_nn(DE_nn):
         for candidate in self.population:
             scores.append(self.loss(test_data, candidate))
         scores = np.array(scores)
-        # Sort candidates based on prediction type (classification or regression)
         if self.prediction_type == "classification":
-            # For classification, higher scores are better
-            sorted_indices = scores.argsort()[::-1]  # Sort in descending order
+            sorted_indices = scores.argsort()[::-1]
         else:
-            # For regression, lower scores are better
-            sorted_indices = scores.argsort()  # Sort in ascending order
+            sorted_indices = scores.argsort()
         # Select the top 'select_size' candidates
         top_indices = sorted_indices[:select_size]
         top_candidates = [self.population[i] for i in top_indices]
