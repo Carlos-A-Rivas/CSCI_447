@@ -5,6 +5,8 @@ import csv
 
 
 # All files were developed collaboratively
+# Currently the save function for the validation set does not work, this functionality can be added later
+# as the processing should be working correctly.
 class dataset:
     '''
     The dataset class handles initial data loading along with all pre-processing tasks
