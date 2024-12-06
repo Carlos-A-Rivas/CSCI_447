@@ -4,6 +4,7 @@ from genetic_algorithm_network import GA_nn
 from differential_evolution_network import DE_nn
 from particle_swarm_optimization_network import PSO_nn
 from additional_functions import process_all
+from additional_functions import save_arrays_to_csv
 
 
 def main():
@@ -357,5 +358,38 @@ def main():
     print(f"Average Performance: {np.mean(machine_PSO_2_score)}")
 
 
+    # Saving Performance Data
+    backprop_scores = [cancer_back_0_score,cancer_back_1_score,cancer_back_2_score,
+                glass_back_0_score,glass_back_1_score,glass_back_2_score,
+                soybean_back_0_score,soybean_back_1_score,soybean_back_2_score,
+                abalone_back_0_score,abalone_back_1_score,abalone_back_2_score,
+                fire_back_0_score,fire_back_1_score,fire_back_2_score,
+                machine_back_0_score,machine_back_1_score,machine_back_2_score]
+
+    GA_scores = [cancer_GA_0_score,cancer_GA_1_score,cancer_GA_2_score,
+                glass_GA_0_score,glass_GA_1_score,glass_GA_2_score,
+                soybean_GA_0_score,soybean_GA_1_score,soybean_GA_2_score,
+                abalone_GA_0_score,abalone_GA_1_score,abalone_GA_2_score,
+                fire_GA_0_score,fire_GA_1_score,fire_GA_2_score,
+                machine_GA_0_score,machine_GA_1_score,machine_GA_2_score]
+
+    DE_scores = [cancer_DE_0_score,cancer_DE_1_score,cancer_DE_2_score,
+                glass_DE_0_score,glass_DE_1_score,glass_DE_2_score,
+                soybean_DE_0_score,soybean_DE_1_score,soybean_DE_2_score,
+                abalone_DE_0_score,abalone_DE_1_score,abalone_DE_2_score,
+                fire_DE_0_score,fire_DE_1_score,fire_DE_2_score,
+                machine_DE_0_score,machine_DE_1_score,machine_DE_2_score]
+    
+    PSO_scores = [cancer_PSO_0_score,cancer_PSO_1_score,cancer_PSO_2_score,
+                glass_PSO_0_score,glass_PSO_1_score,glass_PSO_2_score,
+                soybean_PSO_0_score,soybean_PSO_1_score,soybean_PSO_2_score,
+                abalone_PSO_0_score,abalone_PSO_1_score,abalone_PSO_2_score,
+                fire_PSO_0_score,fire_PSO_1_score,fire_PSO_2_score,
+                machine_PSO_0_score,machine_PSO_1_score,machine_PSO_2_score]
+    
+    save_arrays_to_csv(backprop_scores, 'Backprop_Data.csv')
+    save_arrays_to_csv(GA_scores, 'GA_Data.csv')
+    save_arrays_to_csv(DE_scores, 'DE_Data.csv')
+    save_arrays_to_csv(PSO_scores, 'PSO_Data.csv')
 
 main()

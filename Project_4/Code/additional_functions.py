@@ -75,12 +75,12 @@ def process_all(user: str, shuffle_split: bool):
         soybean_data.shuffle_splits()
 
     # save the datasets
-    abalone_data.save('abalone')
-    cancer_data.save('cancer')
-    fire_data.save('fire')
-    glass_data.save('glass')
-    machine_data.save('machine')
-    soybean_data.save('soybean')
+    #abalone_data.save('abalone')
+    #cancer_data.save('cancer')
+    #fire_data.save('fire')
+    #glass_data.save('glass')
+    #machine_data.save('machine')
+    #soybean_data.save('soybean')
 
     return abalone_data, cancer_data, fire_data, glass_data, machine_data, soybean_data
 
