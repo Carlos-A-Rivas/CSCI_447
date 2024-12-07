@@ -1,0 +1,5 @@
+Code workload distribution:
+We worked on the code together, with Finn covering shuffle(), split(), fold() and sort() in the dataset class. Carlos developed continuize(), impute(), shuffle_splits(), save() and extract().
+Finn developed the PSO class and the crossover(), mutate(), and select_candidates() methods within the genetic algorithm class.
+Carlos developed the code for the differential evolution class, and provided the other methods within the genetic algorithm class.
+Both group memebers worked evenly on the backpropagation class last project, with the same class being used for this project.
